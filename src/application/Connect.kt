@@ -11,7 +11,7 @@ class Connect : View("Mice in lab.") {
     val Connect:Button by fxid()
 
     init {
-        currentStage?.setResizable(false)
+        currentStage?.setResizable(true)
     }
 
     fun connect(){

@@ -10,7 +10,7 @@
         <compilerArguments>
           <option name="jvmTarget" value="1.8" />
           <option name="languageVersion" value="1.4" />
-          <option name="apiVersion" value="1.3" />
+          <option name="apiVersion" value="1.4" />
           <option name="pluginOptions">
             <array />
           </option>
@@ -28,10 +28,9 @@
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/application/views" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/application/img" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/application/views" type="java-resource" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
