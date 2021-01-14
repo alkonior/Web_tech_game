@@ -8,20 +8,16 @@ import javafx.event.EventHandler
 import javafx.geometry.Point2D
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
-import javafx.scene.input.DragEvent
 import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
-import javafx.scene.input.TransferMode
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.ColumnConstraints
 import javafx.scene.layout.GridPane
-import javafx.geometry.Point3D
+import models.GameFieldModel
 import tornadofx.ChangeListener
 import tornadofx.View
-import tornadofx.anchorpane
-import tornadofx.minus
 
-class Game : View("Game") {
+class Game : View("Mice in lab.") {
     override val root: AnchorPane by fxml("/game.fxml")
 
     val fieldview: GridPane by fxid()
@@ -91,7 +87,7 @@ class Game : View("Game") {
         firstLayer[6][5].image = krisaimg
         secondLayer[6][5].image = firstplayerimg
 
-        field.field.addListener(InvalidationListener { field ->
+        field.field.field.addListener(InvalidationListener { field ->
             upade_view(field as GameField)
         })
 
@@ -125,7 +121,7 @@ class Game : View("Game") {
         currentStage?.heightProperty()?.addListener(stageSizeListener)
 
         currentStage?.setResizable(true)
-        upade_view(field.field)
+        upade_view(field.field.field)
         fieldview.onMouseClicked = EventHandler<MouseEvent> { event ->
             run {
                 val point = Point2D(event.getSceneX(), event.getSceneY())
@@ -135,6 +131,8 @@ class Game : View("Game") {
                 );
                 clicked_point_x = (((event.getSceneX() - field_margine_x).toInt()) / cellSize) + current_pos_x
                 clicked_point_y = (((event.getSceneY() - field_margine_y).toInt()) / cellSize) + current_pos_y
+                mouse_clicked(clicked_point_x,clicked_point_y);
+
             }
         }
     }
@@ -153,30 +151,32 @@ class Game : View("Game") {
             val deltaX: Double = event.sceneX - last_point.x
             val deltaY: Double = event.sceneY - last_point.y
 
-            field_margine_x += deltaX;
-            field_margine_y += deltaY;
 
             if (draging) {
+
+                field_margine_x += deltaX;
+                field_margine_y += deltaY;
+
                 run {
                     while (field_margine_x > 0) {
                         field_margine_x -= cellSize;
                         current_pos_x--
-                        upade_view(field.field);
+                        upade_view(field.field.field);
                     }
                     while (field_margine_y > 0) {
                         field_margine_y -= cellSize;
                         current_pos_y--
-                        upade_view(field.field);
+                        upade_view(field.field.field);
                     }
                     while (field_margine_x < -cellSize) {
                         field_margine_x += cellSize;
                         current_pos_x++
-                        upade_view(field.field);
+                        upade_view(field.field.field);
                     }
                     while (field_margine_y < -cellSize) {
                         field_margine_y += cellSize;
                         current_pos_y++
-                        upade_view(field.field);
+                        upade_view(field.field.field);
                     }
 
                 }
@@ -241,6 +241,13 @@ class Game : View("Game") {
             }
         }
     }
+
+
+    fun mouse_clicked(x:Int,y:Int)
+    {
+
+    }
+
 }
 
 

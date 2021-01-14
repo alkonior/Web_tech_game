@@ -1,14 +1,15 @@
-package Server
+package server
 
-import java.io.PrintWriter
 import java.net.Socket
 import java.net.SocketException
 import java.util.*
 
 
-object Server {
+class Server {
+
     private lateinit var _socket :Socket
     private lateinit var _scanner :Scanner
+
     fun connect(ip: String, port: Int): Boolean {
         if (this::_socket.isInitialized) {
             _socket.close();
