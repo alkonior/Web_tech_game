@@ -33,11 +33,15 @@ class Player(_id: Int, _socket: Socket, _session: Session) {
         when (msg[0]){
             //Запрос на создание сессии
             "110" -> {
+                if (status != Status.IDLING)
+                    return "312"
                 server.createSession(this)
                 return "505 ${session.id}"
             }
             //Запрос на подключение к сессии
             "105" -> {
+                if (status != Status.IDLING)
+                    return "312"
                 if (server.sessions.containsKey(msg[1].toInt())){
                     var responce = server.sessions[msg[1].toInt()]!!.addPlayer(this)
                     return responce

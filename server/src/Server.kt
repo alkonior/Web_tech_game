@@ -18,7 +18,7 @@ fun main(args: Array<String>) {
 class Server{
     private lateinit var waitList: Session
     var lobbyCount: Int = 0
-    lateinit var sessions: MutableMap<Int, Session>
+    var sessions: MutableMap<Int, Session> = mutableMapOf(0 to Session(Session.Status.IDLING))
     private var playerCount: Int = 0
     private val server = ServerSocket(2020)
 
@@ -37,7 +37,7 @@ class Server{
     }
 
     fun createSession(_player: Player){
-        Session(Session.Status.LOBBY, lobbyCount++, _player)
+        sessions[lobbyCount] = Session(Session.Status.LOBBY, lobbyCount++, _player)
     }
 
     fun deleteSession(_id: Int){
