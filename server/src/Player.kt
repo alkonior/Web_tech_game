@@ -1,8 +1,8 @@
 import java.net.Socket
 
 
-class Player(_id: Int, _socket: Socket) {
-    var session: Int
+class Player(_id: Int, _socket: Socket, _session: Session) {
+    var session: Session
     var map = null
     var pos = null
     var id: Int
@@ -15,6 +15,7 @@ class Player(_id: Int, _socket: Socket) {
     enum class Status{
         IDLING,
         LOBBY,
+        READY,
         INGAME,
         FINISHED
     }
@@ -23,10 +24,6 @@ class Player(_id: Int, _socket: Socket) {
         id = _id
         socket = _socket
         status = Status.IDLING
-        session = 0
+        session = _session
     }
-
-
-
-
 }

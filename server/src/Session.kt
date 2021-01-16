@@ -1,14 +1,15 @@
+import dk.im2b.Server
+import java.net.Socket
 
-
-class Session(_state: State, _id: Int?, _player: Player?) {
+class Session(_status: Status) {
     var map: Array<Array<Int>>? = null
-    var player_cnt: Int = 0
-    lateinit var players: Array<Player>
-    var id: Int? = null
-    var turn: Int? = null
-    var state: State
+    var playerCount: Int = 0
+    var players: MutableMap<Int, Player> = mutableMapOf( 0 to Player(0, Socket(), this))
+    var id: Int = 0
+    var turn: Int = 0
+    var status: Status
 
-    enum class State{
+    enum class Status{
         IDLING,
         LOBBY,
         INGAME,
@@ -16,11 +17,22 @@ class Session(_state: State, _id: Int?, _player: Player?) {
     }
 
     init{
-        state = _state
-        if (state != State.IDLING) {
-            players[player_cnt] = _player
-            player_cnt++
-            id = _id
-        }
+        status = _status
+    }
+
+    constructor(_status: Status, _id: Int, _player: Player) : this(_status){
+        id = _id
+        players[_player.id] = _player
+    }
+
+    fun addPlayer(_player: Player){
+        _player.status = Player.Status.valueOf(status.name)
+        playerCount++
+        players.put(_player.id, _player)
+    }
+
+    fun removePlayer(_player: Player){
+        playerCount--
+        players.remove(_player.id)
     }
 }

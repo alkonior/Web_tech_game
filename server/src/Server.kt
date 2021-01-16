@@ -9,54 +9,63 @@ import kotlin.concurrent.thread
 import Player
 import Session
 
+var server: Server = Server()
 
 fun main(args: Array<String>) {
-    var server: Server = Server()
     server.run()
 }
 
 class Server{
     private lateinit var waitList: Session
-    private var lateinit sessions: Array<Session>
+    lateinit var sessions: MutableMap<Int, Session>
     private var playerCount: Int = 0
     private val server = ServerSocket(2020)
 
     fun run(){
         println("Server is running on port ${server.localPort}")
-        waitList = Session(Session.State.IDLING, null, null)
+        // Создаем лобби в котором находятся все игроки до подключения в игровые комнаты
+        waitList = Session(Session.Status.IDLING)
+        println("Waitlist is ready! There are ${waitList.playerCount} live connections now!")
+        println("----------------------------------------------------------------")
         while (true) {
             val client = server.accept()
-            println("Client connected: ${client.inetAddress.hostAddress}")
+            println("Client connected: ${client.inetAddress.hostAddress}. His ID is ${playerCount}")
             // Отпускаем клиента в отдельный поток обработки
-            thread { ClientHandler(client, ++playerCount).run() }
+            thread { ClientHandler(client, playerCount++, waitList).run() }
         }
+    }
+
+    fun createSession(_player: Player){
+
+    }
+
+    fun deleteSession(_id: Int){
+        sessions.remove(_id)
     }
 }
 
-class ClientHandler(client: Socket, player_id: Int) {
-    private val client: Socket = client
-    private val reader: Scanner = Scanner(client.getInputStream())
-    private val writer: OutputStream = client.getOutputStream()
-    private val calculator: Calculator = Calculator()
+class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
+    private val reader: Scanner
+    private val writer: OutputStream
     private var running: Boolean = false
+    private val player: Player
 
-    val player = Player(player_id , client)
+    init{
+        reader = Scanner(_client.getInputStream())
+        writer = _client.getOutputStream()
+        player = Player(_playerId, _client, _waitList)
+        player.session.addPlayer(player)
+        println("Player ${player.id} was moved to the main lobby!")
+    }
 
     fun run() {
         running = true
-        // Отсылаем ответ, что сервер жив и готов к работе
         write("100")
         while (running) {
             try {
                 val text = reader.nextLine()
-                if (text == "EXIT"){
-                    shutdown()
-                    continue
-                }
-
-                val values = text.split(' ')
-                val result = calculator.calculate(values[0].toInt(), values[1].toInt(), values[2])
-                write(result)
+                
+                //write()
             } catch (ex: Exception) {
                 // TODO: Implement exception handling
                 shutdown()
@@ -73,35 +82,12 @@ class ClientHandler(client: Socket, player_id: Int) {
 
     private fun shutdown() {
         running = false
-        client.close()
-        println("${client.inetAddress.hostAddress} closed the connection")
+        player.socket.close()
+        println("${player.socket.inetAddress.hostAddress} closed the connection")
+        player.session.removePlayer(player)
+        if (player.session.playerCount == 0 && player.session.status != Session.Status.IDLING)
+            server.deleteSession(player.session.id)
     }
 
 }
 
-class Calculator {
-
-    fun calculate(a: Int, b: Int, operation: String): String {
-        when (operation) {
-            "add" -> return calc(a, b, ::add).toString()
-            "sub" -> return calc(a, b, ::sub).toString()
-            "div" -> return calc(a.toDouble(), b.toDouble(), ::div).toString()
-            "multi" -> return calc(a, b, ::multi).toString()
-            else -> {
-                return "Something whent wrong"
-            }
-        }
-    }
-
-    // A Calculator (functional programming)
-    private fun <T> calc(a: T, b: T, operation: (T, T) -> T): T {
-        return operation(a, b)
-    }
-
-    private fun add(a: Int, b: Int): Int = a + b
-    private fun sub(a: Int, b: Int): Int = a - b
-    private fun div(a: Double, b: Double): Double = a / b
-    private fun multi(a: Int, b: Int): Int = a * b
-
-
-}
