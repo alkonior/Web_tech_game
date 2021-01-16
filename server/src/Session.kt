@@ -22,13 +22,21 @@ class Session(_status: Status) {
 
     constructor(_status: Status, _id: Int, _player: Player) : this(_status){
         id = _id
+        _player.session = this
+        _player.status = Player.Status.valueOf(status.name)
+        playerCount++
         players[_player.id] = _player
     }
 
-    fun addPlayer(_player: Player){
+    fun addPlayer(_player: Player): String {
+        //Проверка на заполненность сессии, если она игровая
+        if(status != Status.IDLING && playerCount == 4)
+            return "507"
+        _player.session = this
         _player.status = Player.Status.valueOf(status.name)
         playerCount++
         players.put(_player.id, _player)
+        return "500"
     }
 
     fun removePlayer(_player: Player){

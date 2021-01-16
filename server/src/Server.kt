@@ -17,6 +17,7 @@ fun main(args: Array<String>) {
 
 class Server{
     private lateinit var waitList: Session
+    var lobbyCount: Int = 0
     lateinit var sessions: MutableMap<Int, Session>
     private var playerCount: Int = 0
     private val server = ServerSocket(2020)
@@ -36,7 +37,7 @@ class Server{
     }
 
     fun createSession(_player: Player){
-
+        Session(Session.Status.LOBBY, lobbyCount++, _player)
     }
 
     fun deleteSession(_id: Int){
@@ -60,12 +61,12 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
 
     fun run() {
         running = true
-        write("100")
+        write("500")
         while (running) {
             try {
                 val text = reader.nextLine()
-                
-                //write()
+                val responce = player.command(text)
+                write(responce)
             } catch (ex: Exception) {
                 // TODO: Implement exception handling
                 shutdown()
