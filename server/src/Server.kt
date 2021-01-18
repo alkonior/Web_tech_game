@@ -18,7 +18,7 @@ fun main(args: Array<String>) {
 class Server{
     private lateinit var waitList: Session
     var lobbyCount: Int = 0
-    var sessions: MutableMap<Int, Session> = mutableMapOf(0 to Session(Session.Status.IDLING))
+    var sessions: MutableMap<Int, Session> = mutableMapOf()
     private var playerCount: Int = 0
     private val server = ServerSocket(2020)
 
@@ -65,7 +65,7 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         while (running) {
             try {
                 val text = reader.nextLine()
-                val responce = player.command(text)
+                val responce = command(text)
                 write(responce)
             } catch (ex: Exception) {
                 // TODO: Implement exception handling
@@ -77,17 +77,73 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         }
     }
 
+    fun command(_msg: String): String {
+        val msg = _msg.split(" ")
+        when (msg[0]){
+            //Запрос на создание сессии
+            "110" -> {
+                if (player.status != Player.Status.IDLING)
+                    return "312"
+                server.createSession(player)
+                return "505 ${player.session.id}"
+            }
+            //Запрос на подключение к сессии
+            "105" -> {
+                return toLobby(msg[1])
+            }
+            /*"112" ->{
+                return ready()
+            }*/
+            //Общая ошибка, распознать нельзя
+            else -> return "312"
+        }
+    }
+
+    fun toLobby(msg: String): String {
+        if (player.status != Player.Status.IDLING)
+            return "312"
+        if (server.sessions.containsKey(msg.toInt())){
+            val code: String = server.sessions[msg.toInt()]!!.addPlayer(player)
+            val responce = "${code} ${player.session.ready} ${player.session.playerCount}"
+            announce(false, responce)
+            return responce
+        }
+        else{
+            //Лобби не найдено
+            return "506"
+        }
+    }
+
+    private fun ready(){
+
+    }
+
     private fun write(message: String) {
         writer.write((message + '\n').toByteArray(Charset.defaultCharset()))
+    }
+
+    private fun announce(_everyone: Boolean, _announcement: String){
+        if (!_everyone){
+            for (x in player.session.players.values){
+                if(player != x) {
+                    x.write(_announcement)
+                }
+            }
+        }else{
+            for (x in player.session.players.values){
+                x.write(_announcement)
+            }
+        }
     }
 
     private fun shutdown() {
         running = false
         player.socket.close()
-        println("${player.socket.inetAddress.hostAddress} closed the connection")
+        println("${player.socket.inetAddress.hostAddress} with id ${player.id} closed the connection")
         player.session.removePlayer(player)
-        if (player.session.playerCount == 0 && player.session.status != Session.Status.IDLING)
+        if (player.session.playerCount == 0 && player.session.status != Session.Status.IDLING) {
             server.deleteSession(player.session.id)
+        }
     }
 
 }

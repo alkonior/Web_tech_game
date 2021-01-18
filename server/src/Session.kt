@@ -1,13 +1,11 @@
-import dk.im2b.Server
-import java.net.Socket
-
 class Session(_status: Status) {
     var map: Array<Array<Int>>? = null
     var playerCount: Int = 0
-    var players: MutableMap<Int, Player> = mutableMapOf( 0 to Player(0, Socket(), this))
+    var players: MutableMap<Int, Player> = mutableMapOf()
     var id: Int = 0
     var turn: Int = 0
     var status: Status
+    var ready: Int = 0
 
     enum class Status{
         IDLING,
@@ -36,7 +34,7 @@ class Session(_status: Status) {
         _player.status = Player.Status.valueOf(status.name)
         playerCount++
         players.put(_player.id, _player)
-        return "500"
+        return "509"
     }
 
     fun removePlayer(_player: Player){
