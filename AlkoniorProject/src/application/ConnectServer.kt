@@ -11,7 +11,7 @@ import models.GameFieldModel
 import tornadofx.*
 
 class ConnectServer : View("Mice in lab.") {
-    override val root: AnchorPane by fxml("/connect.fxml")
+    override val root: AnchorPane by fxml("/views/connect.fxml")
 
     val Connect:Button by fxid()
 

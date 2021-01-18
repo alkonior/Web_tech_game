@@ -20,7 +20,7 @@ import tornadofx.ChangeListener
 import tornadofx.View
 
 class Game : View("Mice in lab.") {
-    override val root: AnchorPane by fxml("/game.fxml")
+    override val root: AnchorPane by fxml("/views/game.fxml")
 
     val fieldview: GridPane by fxid()
     val fieldcontaner: AnchorPane by fxid()
@@ -44,12 +44,12 @@ class Game : View("Mice in lab.") {
     private val field_: GameFieldModel by inject()
     private val field = field_.field.field
 
-    private val voidimg = Image("/void.png")
-    private val wallimg = Image("/wall.png")
-    private val krisaimg = Image("/krisa.png")
-    private val fogimg = Image("/fog.png")
-    private val firstplayerimg = Image("/first.png")
-    private val nothingimg = Image("/nothing.png")
+    private val voidimg = Image("/img/void.png")
+    private val wallimg = Image("/img/wall.png")
+    private val krisaimg = Image("/img/krisa.png")
+    private val fogimg = Image("/img/fog.png")
+    private val firstplayerimg = Image("/img/first.png")
+    private val nothingimg = Image("/img/nothing.png")
 
     private var clicked_point_x = 0;
     private var clicked_point_y = 0;
