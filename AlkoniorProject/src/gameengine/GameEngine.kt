@@ -1,5 +1,6 @@
 package gameengine
 
+import bot.MouseBot
 import field.GameField
 import server.Server
 
@@ -14,13 +15,19 @@ class GameEngine {
 
     public  var field  = GameField();
     private var server = Server();
+    private lateinit var bot: MouseBot;
+
+    public var sessionId = "AAAAAA";
 
     fun connect(ip: String, port:String)
     {
         if (current_stage  == GameStage.ServerConnection) {
+            /*
             if (server.connect(ip, port.toInt())) {
                 current_stage = GameStage.LobbyConnection
             }
+            */
+            current_stage = GameStage.LobbyConnection
         }
     }
 
@@ -38,6 +45,11 @@ class GameEngine {
         {
             TODO("Server.send(\"что-то то там\")")
         }
+    }
+
+    fun move_mouse_to(x:Int, y:Int)
+    {
+
     }
 
 

@@ -3,6 +3,7 @@ package application
 import field.GameField
 import gameengine.GameEngine
 import javafx.scene.control.Button
+import javafx.scene.control.Label
 import javafx.scene.control.TextField
 import javafx.scene.layout.AnchorPane
 import javafx.scene.text.TextFlow
@@ -16,7 +17,7 @@ class ConnectServer : View("Mice in lab.") {
 
     val Id: TextField by fxid()
     val Port: TextField by fxid()
-    val ErrorMessage: TextFlow by fxid()
+    val ErrorMessage: Label by fxid()
 
     init {
         currentStage?.setResizable(false)

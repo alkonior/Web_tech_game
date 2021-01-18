@@ -11,9 +11,8 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.text.TextFlow?>
 
-<AnchorPane prefHeight="640.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane minHeight="200.0" minWidth="200.0" prefHeight="640.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <VBox alignment="CENTER" layoutX="48.0" layoutY="30.0" prefHeight="725.0" prefWidth="917.0" style="-fx-background-color: white;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
@@ -53,7 +52,11 @@
                         </VBox>
                      </children>
                   </HBox>
-                  <TextFlow fx:id="ErrorMessage" prefHeight="31.0" prefWidth="640.0" />
+                  <Label fx:id="ErrorMessage" alignment="CENTER" prefHeight="28.0" prefWidth="640.0" textAlignment="CENTER" textOverrun="CLIP">
+                     <font>
+                        <Font size="19.0" />
+                     </font>
+                  </Label>
                   <Button fx:id="Connect" mnemonicParsing="false" onAction="#connect" prefHeight="48.0" prefWidth="229.0" text="Connect to Server" textAlignment="CENTER">
                      <font>
                         <Font name="Calibri" size="25.0" />

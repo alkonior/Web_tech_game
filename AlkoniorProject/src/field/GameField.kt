@@ -7,18 +7,24 @@ enum class CellValue {
     VOID,
     FLOOR,
     WALL,
-    EXIT,
+    EXIT
+}
+
+enum class MouseValue {
     RED,
     GREEN,
     BLUE,
-    YELLOW,
-
+    YELLOW
 }
 
 class GameField(var width: Int, var height: Int) : Observable {
 
 
-    public class CellInfo(var value: CellValue, var shadow: Int) {
+
+    public class CellInfo(var value: CellValue, var shadow: Int, var text:String) {
+        constructor(value: CellValue,  shadow: Int):this(value,shadow,""){
+
+        }
     }
 
     private val listeners = mutableMapOf<Int, InvalidationListener>();
@@ -38,16 +44,13 @@ class GameField(var width: Int, var height: Int) : Observable {
         }
         for (i in 1..(width - 2)) {
             for (j in 1..(height - 2)) {
-                field[i][j].value = CellValue.FLOOR
+                field[i][j].value = CellValue.VOID
             }
         }
-        field[5][6].value = CellValue.RED
-        field[5][7].value = CellValue.RED
     }
 
 
     constructor() : this(10, 10) {
-
     }
 
 
@@ -62,9 +65,6 @@ class GameField(var width: Int, var height: Int) : Observable {
 
     operator fun set(i: Int, j: Int, value: CellInfo) {
         field[i][j] = value;
-        listeners.forEach {listener ->
-                listener.value.invalidated(this);
-        }
     }
 
     override fun addListener(p0: InvalidationListener?) {
@@ -78,6 +78,13 @@ class GameField(var width: Int, var height: Int) : Observable {
             if (listeners.containsKey(p0.hashCode())) {
                 listeners.remove(p0.hashCode())
             }
+        }
+    }
+
+    fun ping()
+    {
+        listeners.forEach {listener ->
+            listener.value.invalidated(this);
         }
     }
 
