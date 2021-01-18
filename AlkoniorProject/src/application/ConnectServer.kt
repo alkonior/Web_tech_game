@@ -30,7 +30,7 @@ class ConnectServer : View("Mice in lab.") {
 
 
         var game = GameEngine();
-        //game.connect(Id.text,Port.text)
+        game.connect(Id.text,Port.text)
         val model = GameFieldModel(game);
         val fragmentScope = Scope()
         setInScope(model, fragmentScope)

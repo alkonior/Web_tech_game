@@ -36,6 +36,7 @@ class Server {
 
     fun getMess():String
     {
+        return readLine().toString()
         if (this::_scanner.isInitialized)
             return _scanner.nextLine();
         else

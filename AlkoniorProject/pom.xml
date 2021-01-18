@@ -15,6 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.code.style>official</kotlin.code.style>
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
+        <kotlin.version>1.4.0</kotlin.version>
     </properties>
 
     <repositories>
@@ -69,6 +70,11 @@
             <groupId>no.tornado</groupId>
             <artifactId>tornadofx</artifactId>
             <version>1.7.20</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-core</artifactId>
+            <version>1.4.2</version>
         </dependency>
     </dependencies>
 

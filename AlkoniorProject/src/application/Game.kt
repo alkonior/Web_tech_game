@@ -4,10 +4,12 @@ import field.CellValue
 import field.GameField
 import javafx.beans.InvalidationListener
 import javafx.beans.value.ChangeListener
+import javafx.beans.value.ObservableValue
 import javafx.event.EventHandler
 import javafx.geometry.Point2D
 import javafx.geometry.Pos
 import javafx.scene.control.Label
+import javafx.scene.control.Slider
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.input.MouseButton
@@ -23,6 +25,7 @@ class Game : View("Mice in lab.") {
     val fieldview: GridPane by fxid()
     val fieldcontaner: AnchorPane by fxid()
     val SessionId: Label by fxid()
+    val timer: Slider by fxid()
 
     private var screen_width: Int = 0
     private var screen_height: Int = 0
@@ -151,8 +154,14 @@ class Game : View("Mice in lab.") {
                 }
             }
 
+
         currentStage?.widthProperty()?.addListener(stageSizeListener)
         currentStage?.heightProperty()?.addListener(stageSizeListener)
+
+        field_.field.cur_second.addListener(ChangeListener {
+                observable, oldValue, newValue ->
+                    timer.value = (newValue.toDouble()/field_.field.max_seconds*100)
+        })
 
         currentStage?.setResizable(true)
         upade_view(field)
@@ -290,6 +299,3 @@ class Game : View("Mice in lab.") {
     }
 
 }
-
-
-
