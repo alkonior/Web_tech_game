@@ -8,6 +8,9 @@ import java.util.*
 import kotlin.concurrent.thread
 import Player
 import Session
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 var server: Server = Server()
 
@@ -59,14 +62,15 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         println("Player ${player.id} was moved to the main lobby!")
     }
 
-    fun run() {
+    fun run() = runBlocking {
         running = true
-        write("500")
+        player.write("500")
         while (running) {
             try {
                 val text = reader.nextLine()
-                val responce = command(text)
-                write(responce)
+                launch((Dispatchers.Default)){
+                command(text)
+                }
             } catch (ex: Exception) {
                 // TODO: Implement exception handling
                 shutdown()
@@ -77,50 +81,44 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         }
     }
 
-    fun command(_msg: String): String {
+    suspend fun command(_msg: String) {
         val msg = _msg.split(" ")
         when (msg[0]){
             //Запрос на создание сессии
             "110" -> {
                 if (player.status != Player.Status.IDLING)
-                    return "312"
+                    player.write("312")
                 server.createSession(player)
-                return "505 ${player.session.id}"
+                player.write("505 ${player.session.id}")
             }
             //Запрос на подключение к сессии
-            "105" -> {
-                return toLobby(msg[1])
-            }
-            /*"112" ->{
-                return ready()
+            "105" -> toLobby(msg[1])
+/*            "112" ->{
+                ready()
             }*/
             //Общая ошибка, распознать нельзя
-            else -> return "312"
+            else -> player.write("312")
         }
     }
 
-    fun toLobby(msg: String): String {
+    fun toLobby(msg: String) {
         if (player.status != Player.Status.IDLING)
-            return "312"
+            player.write("312")
         if (server.sessions.containsKey(msg.toInt())){
             val code: String = server.sessions[msg.toInt()]!!.addPlayer(player)
             val responce = "${code} ${player.session.ready} ${player.session.playerCount}"
-            announce(false, responce)
-            return responce
+            announce(true, responce)
         }
         else{
             //Лобби не найдено
-            return "506"
+            player.write("506")
         }
     }
 
-    private fun ready(){
+/*    private fun ready(){
+        player.status
 
-    }
-
-    private fun write(message: String) {
-        writer.write((message + '\n').toByteArray(Charset.defaultCharset()))
-    }
+    }*/
 
     private fun announce(_everyone: Boolean, _announcement: String){
         if (!_everyone){
