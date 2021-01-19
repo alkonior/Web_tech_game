@@ -2,6 +2,7 @@ package field
 
 import javafx.beans.InvalidationListener
 import javafx.beans.Observable
+import java.awt.Point
 
 enum class CellValue {
     VOID,
@@ -12,10 +13,12 @@ enum class CellValue {
 
 enum class MouseValue {
     RED,
-    GREEN,
     BLUE,
+    GREEN,
     YELLOW
 }
+
+class Mouse(var p:Point,var color:MouseValue)
 
 class GameField(var width: Int, var height: Int) : Observable {
 
@@ -32,6 +35,7 @@ class GameField(var width: Int, var height: Int) : Observable {
     private var field =
         MutableList<MutableList<CellInfo>>(width) { MutableList<CellInfo>(height) { CellInfo(CellValue.VOID, 0) } };
 
+    public var players_position = mutableListOf<Mouse>()
 
     init {
         for (i in 0..(width - 1)) {
@@ -47,6 +51,11 @@ class GameField(var width: Int, var height: Int) : Observable {
                 field[i][j].value = CellValue.VOID
             }
         }
+        players_position.add(Mouse(Point(1,1), MouseValue.BLUE))
+        players_position.add(Mouse(Point(3,3), MouseValue.RED))
+        players_position.add(Mouse(Point(3,3), MouseValue.GREEN))
+        this[1,1].shadow = 0
+        this[3,3].shadow = 0
     }
 
 

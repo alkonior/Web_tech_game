@@ -18,7 +18,7 @@
          <children>
             <ImageView fitHeight="316.0" fitWidth="516.0" pickOnBounds="true" preserveRatio="true">
                <image>
-                  <Image url="@/mish.jpg" />
+                  <Image url="@/img/mish.jpg" />
                </image>
                <effect>
                   <MotionBlur />

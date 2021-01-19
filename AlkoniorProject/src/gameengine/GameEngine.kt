@@ -28,7 +28,7 @@ class GameEngine {
     }
     lateinit var main_thread: Thread;
 
-    public val max_seconds = 3000
+    public val max_seconds = 5000
     private val delay_seconds = 100
 
     private var server = Server();
@@ -96,6 +96,9 @@ class GameEngine {
         while (current_stage == GameStage.Game) {
             delay(200)
             println("${cur_second}")
+            field.players_position[0].p.x = cur_second.value/1000
+            field.players_position[0].p.y = cur_second.value/1000
+            field.ping()
             if (cur_second.value >= max_seconds)
             {
                 cur_second.value = 0
