@@ -9,6 +9,7 @@ import kotlin.concurrent.thread
 import Player
 import Session
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -19,7 +20,7 @@ fun main(args: Array<String>) {
 }
 
 class Server{
-    private lateinit var waitList: Session
+    lateinit var waitList: Session
     var lobbyCount: Int = 0
     var sessions: MutableMap<Int, Session> = mutableMapOf()
     private var playerCount: Int = 0
@@ -39,10 +40,11 @@ class Server{
         }
     }
 
+    //Создание новой сессии на сервере
     fun createSession(_player: Player){
         sessions[lobbyCount] = Session(Session.Status.LOBBY, lobbyCount++, _player)
     }
-
+    //Удаление существующей сессии на сервере
     fun deleteSession(_id: Int){
         sessions.remove(_id)
     }
@@ -72,7 +74,7 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
                 command(text)
                 }
             } catch (ex: Exception) {
-                // TODO: Implement exception handling
+                // TODO: Обработка исключений
                 shutdown()
             } finally {
 
@@ -81,31 +83,37 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         }
     }
 
+    //Обработчик  входящих сообщений
+    //_msg строка содержащая в себе код команды и аргументы, разделенные " "
     suspend fun command(_msg: String) {
         val msg = _msg.split(" ")
         when (msg[0]){
             //Запрос на создание сессии
             "110" -> {
                 if (player.status != Player.Status.IDLING)
-                    player.write("312")
+                    player.write("666")
                 server.createSession(player)
                 player.write("505 ${player.session.id}")
             }
             //Запрос на подключение к сессии
             "105" -> toLobby(msg[1])
-/*            "112" ->{
-                ready()
-            }*/
+            //Подтверждение готовности в лобби
+            "112" -> ready()
+            //Покинуть лобби
+            "106" -> back()
             //Общая ошибка, распознать нельзя
-            else -> player.write("312")
+            else -> player.write("666")
         }
     }
 
-    fun toLobby(msg: String) {
+    //Функция добавления игрока в лобби.
+    // _msg номер лобби для подключения.
+    fun toLobby(_msg: String) {
+        //Нельзя попасть в лобби не из стартового меню
         if (player.status != Player.Status.IDLING)
-            player.write("312")
-        if (server.sessions.containsKey(msg.toInt())){
-            val code: String = server.sessions[msg.toInt()]!!.addPlayer(player)
+            player.write("666")
+        if (server.sessions.containsKey(_msg.toInt())){
+            val code: String = server.sessions[_msg.toInt()]!!.addPlayer(player)
             val responce = "${code} ${player.session.ready} ${player.session.playerCount}"
             announce(true, responce)
         }
@@ -115,11 +123,45 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         }
     }
 
-/*    private fun ready(){
-        player.status
+    //Функция для показания готовности игроков в сессии к старту игры
+    private fun ready(){
+        if(player.status == Player.Status.LOBBY) {
+            player.status = Player.Status.READY
+            player.session.ready++
+            if(player.session.ready == player.session.playerCount){
+                startGame()
+            }else{
+                announce(true, "509 ${player.session.ready} ${player.session.playerCount}")
+            }
+        }else{
+            player.write("666")
+        }
+    }
 
-    }*/
+    //Функция выхода из лобби
+    private fun back(){
+        if(player.status == Player.Status.LOBBY || player.status == Player.Status.READY)
+        {
+            if(player.session.playerCount != 1) {
+                player.session.removePlayer(player)
+                announce(false, "508 ${player.session.playerCount}")
+            }else{
+                server.deleteSession(player.session.id)
+            }
+            server.waitList.addPlayer(player)
+            player.write("500")
+        }else{
+            player.write("666")
+        }
+    }
 
+    private fun startGame(){
+        //TODO: Сделать =)
+    }
+
+    //Функция отправки сообщения всем игрокам
+    // _everyone -> true  говорит о том, что сообщение должны получить все пользователи сессии
+    //           -> false говорит о том, что сообщение будет получено всеми, кроме данного пользователя
     private fun announce(_everyone: Boolean, _announcement: String){
         if (!_everyone){
             for (x in player.session.players.values){
@@ -134,6 +176,7 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         }
     }
 
+    //Закрытие сокета соединения с клиентом с соответствующими обработками
     private fun shutdown() {
         running = false
         player.socket.close()

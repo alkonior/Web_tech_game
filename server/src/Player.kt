@@ -29,7 +29,8 @@ class Player(_id: Int, _socket: Socket, _session: Session) {
         session = _session
     }
 
-    fun write(message: String){
-            socket.getOutputStream().write((message + '\n').toByteArray(Charset.defaultCharset()))
+    //Функция передачи сообщения клиенту
+    fun write(_msg: String){
+            socket.getOutputStream().write((_msg + '\n').toByteArray(Charset.defaultCharset()))
     }
 }

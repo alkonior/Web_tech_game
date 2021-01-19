@@ -18,6 +18,7 @@ class Session(_status: Status) {
         status = _status
     }
 
+    //Конструктор не Idle сессии
     constructor(_status: Status, _id: Int, _player: Player) : this(_status){
         id = _id
         _player.session = this
@@ -26,6 +27,7 @@ class Session(_status: Status) {
         players[_player.id] = _player
     }
 
+    //Добавление игрока в сессию
     fun addPlayer(_player: Player): String {
         //Проверка на заполненность сессии, если она игровая
         if(status != Status.IDLING && playerCount == 4)
@@ -37,8 +39,18 @@ class Session(_status: Status) {
         return "509"
     }
 
+    //Удаление игрока из данной сессии
     fun removePlayer(_player: Player){
         playerCount--
         players.remove(_player.id)
+        if(_player.status == Player.Status.LOBBY || _player.status == Player.Status.READY)
+        {
+            ready = 0
+            for (x in players.values) {
+                x.status = Player.Status.valueOf(status.name)
+            }
+        }
     }
+
+
 }
