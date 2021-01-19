@@ -33,6 +33,7 @@ class Game : View("Mice in lab.") {
 
     private var screen_width: Int = 0
     private var screen_height: Int = 0
+
     private val cellSize = 64
 
     private var max_screen_width: Int = 100
@@ -135,8 +136,8 @@ class Game : View("Mice in lab.") {
                     {
                         val image = ImageView()
                         image.image = nothingimg
-                        image.fitHeight = 32.0
-                        image.fitWidth = 32.0
+                        image.fitHeight = cellSize/2*1.0
+                        image.fitWidth = cellSize/2*1.0
                         panel.add(image)
                         multyKrisaLayer[i][j].add(image)
                     }
