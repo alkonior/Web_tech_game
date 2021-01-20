@@ -101,13 +101,13 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
             //Покинуть лобби
             "106" -> back()
             //Движение влево
-            "202" -> move(msg[0])
+            "202" -> move(msg[0], msg[1].toInt())
             //Движение вправо
-            "203" -> move(msg[0])
+            "203" -> move(msg[0], msg[1].toInt())
             //Движение вниз
-            "204" -> move(msg[0])
+            "204" -> move(msg[0], msg[1].toInt())
             //Движение ввверх
-            "205" -> move(msg[0])
+            "205" -> move(msg[0], msg[1].toInt())
             //Общая ошибка, распознать нельзя
             else -> player.write("666")
         }
@@ -160,8 +160,8 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         }
     }
 
-    private fun move(_direction: String) {
-        if (player.status == Player.Status.INGAME) {
+    private fun move(_direction: String, _turn: Int) {
+        if (player.status == Player.Status.INGAME && _turn == player.session.turn) {
             player.transPos = arrayOf(player.pos[0], player.pos[1])
             when (_direction.toInt()) {
                 202 -> player.transPos[0]--
@@ -170,6 +170,12 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
                 205 -> player.transPos[1]--
             }
             player.ready = true
+        } else {
+            if (_turn == player.session.turn) {
+                player.write("700")
+            } else {
+                player.write("666")
+            }
         }
     }
 
