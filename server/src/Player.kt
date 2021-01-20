@@ -5,8 +5,10 @@ import java.nio.charset.Charset
 
 class Player(_id: Int, _socket: Socket, _session: Session) {
     var session: Session
-    var map = null
-    var pos = null
+    var pos = arrayOf(1, 1)
+    var transPos = arrayOf(1, 1)
+    var color = 0
+    var ready: Boolean = false
     var id: Int
         private set
     var socket: Socket
@@ -14,7 +16,7 @@ class Player(_id: Int, _socket: Socket, _session: Session) {
 
     var status: Status
 
-    enum class Status{
+    enum class Status {
         IDLING,
         LOBBY,
         READY,
@@ -22,7 +24,7 @@ class Player(_id: Int, _socket: Socket, _session: Session) {
         FINISHED
     }
 
-    init{
+    init {
         id = _id
         socket = _socket
         status = Status.IDLING
@@ -30,7 +32,7 @@ class Player(_id: Int, _socket: Socket, _session: Session) {
     }
 
     //Функция передачи сообщения клиенту
-    fun write(_msg: String){
-            socket.getOutputStream().write((_msg + '\n').toByteArray(Charset.defaultCharset()))
+    fun write(_msg: String) {
+        socket.getOutputStream().write((_msg + '\n').toByteArray(Charset.defaultCharset()))
     }
 }
