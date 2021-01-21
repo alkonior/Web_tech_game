@@ -2,6 +2,8 @@ package gameengine
 
 import bot.MouseBot
 import field.GameField
+import field.Mouse
+import field.MouseValue
 import javafx.beans.InvalidationListener
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
@@ -9,6 +11,7 @@ import server.Server
 import tornadofx.plusAssign
 import java.util.*
 import kotlinx.coroutines.*
+import java.awt.Point
 import kotlin.concurrent.thread
 
 class GameEngine:EventListener {
@@ -95,9 +98,6 @@ class GameEngine:EventListener {
 
     fun server_comand_reeder() = runBlocking {
         coroutineScope {
-            launch(Dispatchers.Default) {
-                start_game()
-            }
             while (current_stage.value != GameStage.ServerConnection) {
                 var mes = server.getMess()
                 launch(Dispatchers.Default) {
@@ -129,10 +129,23 @@ class GameEngine:EventListener {
         //Сессия полная
         "507" -> throw Throwable("Session is full.")
         "508" -> playersReady("0",msg[1])
-
+        "510" -> start_game(msg[1],msg[2],msg[3],msg[4],msg[5],msg[6],msg[7],msg[8],msg[9],msg[10])
+        "777" -> make_turn(msg[1],msg[2],msg[3],msg[4],msg[5], msg)
         else -> {}
     }
 }
+
+    private fun make_turn(
+        left: String,
+        right: String,
+        down: String,
+        up: String,
+        center: String,
+        msg: List<String>) {
+        
+
+
+    }
 
     private fun playersReady(s1: String, s2: String) {
         playersInLobby.value = s1.toInt() + s2.toInt()
@@ -162,8 +175,30 @@ class GameEngine:EventListener {
     }
 
 
-    suspend fun start_game() {
+    suspend fun start_game(
+        color: String,
+        width: String,
+        height: String,
+        x: String,
+        y: String,
+        left: String,
+        right: String,
+        down: String,
+        up: String,
+        center: String
+    ) {
         timer.schedule(timerTask, 0, delay_seconds.toLong())
+
+        field = GameField(width.toInt(),height.toInt())
+        for( i in 1..(playersInLobby.value))
+        {
+            field.players_position.add(Mouse(Point(0,0),
+                listOf(MouseValue.RED,MouseValue.YELLOW,MouseValue.BLUE,MouseValue.GREEN)[(i-1)%4]
+            ))
+        }
+        field.players_position[color.toInt()-3].p= Point(x.toInt(),y.toInt())
+
+
     }
 
     fun createLobby() {

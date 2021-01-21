@@ -34,6 +34,13 @@ class LobbyConnect : View("Mice in lab.") {
                     val gameview = find<Lobby>(fragmentScope)
                     replaceWith(gameview)
                 }
+                if (gameEngine.current_stage.value == GameEngine.GameStage.Game) {
+                    val model = GameFieldModel(gameEngine);
+                    val fragmentScope = Scope()
+                    setInScope(model, fragmentScope)
+                    val gameview = find<Game>(fragmentScope)
+                    replaceWith(gameview)
+                }
             }
         })
 
