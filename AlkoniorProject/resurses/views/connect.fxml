@@ -36,7 +36,10 @@
                                     <Font size="17.0" />
                                  </font>
                               </Label>
-                              <TextField fx:id="Id" prefHeight="25.0" prefWidth="208.0" />
+                              <TextField fx:id="Id" alignment="CENTER" prefHeight="41.0" prefWidth="211.0" text="localhost">
+                                 <font>
+                                    <Font size="26.0" />
+                                 </font></TextField>
                            </children>
                         </VBox>
                         <Pane prefHeight="19.0" prefWidth="105.0" />
@@ -47,7 +50,10 @@
                                     <Font size="17.0" />
                                  </font>
                               </Label>
-                              <TextField fx:id="Port" prefHeight="25.0" prefWidth="76.0" />
+                              <TextField fx:id="Port" alignment="CENTER" prefHeight="42.0" prefWidth="184.0" text="2020">
+                                 <font>
+                                    <Font size="26.0" />
+                                 </font></TextField>
                            </children>
                         </VBox>
                      </children>

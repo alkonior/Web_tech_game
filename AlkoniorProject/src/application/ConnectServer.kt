@@ -21,20 +21,33 @@ class ConnectServer : View("Mice in lab.") {
 
     init {
         currentStage?.setResizable(false)
+        currentStage?.width  = 640.0
+        currentStage?.height  = 640.0
     }
 
     fun connect(){
         println("Connect")
 
-        val field = GameField(10,10);
 
 
         var game = GameEngine();
-        game.connect(Id.text,Port.text)
-        val model = GameFieldModel(game);
-        val fragmentScope = Scope()
-        setInScope(model, fragmentScope)
-        val gameview = find<Game>(fragmentScope)
-        replaceWith(gameview)
+        try {
+            if (
+            game.connect(Id.text,Port.text)){
+
+
+            val model = GameFieldModel(game);
+            val fragmentScope = Scope()
+            setInScope(model, fragmentScope)
+            val gameview = find<LobbyConnect>(fragmentScope)
+
+            replaceWith(gameview)
+            }
+
+        }catch (exe:Throwable){
+            ErrorMessage.text = exe.message
+        }
+
+
     }
 }

@@ -4,6 +4,7 @@ import field.CellValue
 import field.GameField
 import field.Mouse
 import field.MouseValue
+import javafx.application.Platform
 import javafx.beans.InvalidationListener
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
@@ -47,7 +48,7 @@ class Game : View("Mice in lab.") {
 
 
     private val field_: GameFieldModel by inject()
-    private val field = field_.field.field
+    private val field = field_.engine.field
 
     private val floorimg = Image("/img/void.png")
     private val wallimg = Image("/img/wall.png")
@@ -158,7 +159,8 @@ class Game : View("Mice in lab.") {
         }
 
         field.addListener { field ->
-            upade_view(field as GameField)
+            Platform.runLater(
+                Runnable { upade_view(field as GameField) })
         }
 
 
@@ -192,8 +194,9 @@ class Game : View("Mice in lab.") {
         currentStage?.widthProperty()?.addListener(stageSizeListener)
         currentStage?.heightProperty()?.addListener(stageSizeListener)
 
-        field_.field.cur_second.addListener(ChangeListener { observable, oldValue, newValue ->
-            timer.value = (newValue.toDouble() / field_.field.max_seconds * 100)
+        field_.engine.cur_second.addListener(ChangeListener { observable, oldValue, newValue ->
+            Platform.runLater(
+                Runnable { timer.value = (newValue.toDouble() / field_.engine.max_seconds * 100) })
         })
 
         currentStage?.setResizable(true)
@@ -217,7 +220,7 @@ class Game : View("Mice in lab.") {
         AnchorPane.setLeftAnchor(fieldview, field_margine_x);
         AnchorPane.setTopAnchor(fieldview, field_margine_y);
 
-        SessionId.text = field_.field.sessionId
+        SessionId.text = field_.engine.sessionId
     }
 
     var draging = false;
