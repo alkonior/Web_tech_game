@@ -86,30 +86,36 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
     //_msg строка содержащая в себе код команды и аргументы, разделенные " "
     suspend fun command(_msg: String) {
         val msg = _msg.split(" ")
-        when (msg[0]) {
-            //Запрос на создание сессии
-            "110" -> {
-                if (player.status != Player.Status.IDLING)
+        val code: Int
+        try {
+            code = msg[0].toInt()
+            when (code) {
+                //Запрос на создание сессии
+                110 -> {
+                    if (player.status != Player.Status.IDLING) {
+                        player.write("666")
+                    } else {
+                        server.createSession(player)
+                        player.write("505 ${player.session.id}")
+                    }
+                }
+                //Запрос на подключение к сессии
+                105 -> toLobby(msg[1])
+                //Подтверждение готовности в лобби
+                112 -> ready()
+                //Покинуть лобби
+                106 -> back()
+                //Движения
+                202, 203, 204, 205 -> if (msg[1].isNotEmpty()) {
+                    move(code, msg[1].toInt())
+                } else {
                     player.write("666")
-                server.createSession(player)
-                player.write("505 ${player.session.id}")
+                }
+                //Общая ошибка, распознать нельзя
+                else -> player.write("666")
             }
-            //Запрос на подключение к сессии
-            "105" -> toLobby(msg[1])
-            //Подтверждение готовности в лобби
-            "112" -> ready()
-            //Покинуть лобби
-            "106" -> back()
-            //Движение влево
-            "202" -> move(msg[0], msg[1].toInt())
-            //Движение вправо
-            "203" -> move(msg[0], msg[1].toInt())
-            //Движение вниз
-            "204" -> move(msg[0], msg[1].toInt())
-            //Движение ввверх
-            "205" -> move(msg[0], msg[1].toInt())
-            //Общая ошибка, распознать нельзя
-            else -> player.write("666")
+        } catch (ex: Exception) {
+            player.write("666")
         }
     }
 
@@ -117,15 +123,17 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
     // _msg номер лобби для подключения.
     private fun toLobby(_msg: String) {
         //Нельзя попасть в лобби не из стартового меню
-        if (player.status != Player.Status.IDLING)
+        if (player.status != Player.Status.IDLING) {
             player.write("666")
-        if (server.sessions.containsKey(_msg.toInt())) {
-            val code: String = server.sessions[_msg.toInt()]!!.addPlayer(player)
-            val responce = "${code} ${player.session.ready} ${player.session.playerCount}"
-            announce(true, responce)
         } else {
-            //Лобби не найдено
-            player.write("506")
+            if (server.sessions.containsKey(_msg.toInt())) {
+                val code: String = server.sessions[_msg.toInt()]!!.addPlayer(player)
+                val responce = "${code} ${player.session.ready} ${player.session.playerCount}"
+                announce(true, responce)
+            } else {
+                //Лобби не найдено
+                player.write("506")
+            }
         }
     }
 
@@ -160,10 +168,10 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         }
     }
 
-    private fun move(_direction: String, _turn: Int) {
+    private fun move(_direction: Int, _turn: Int) {
         if (player.status == Player.Status.INGAME && _turn == player.session.turn) {
             player.transPos = arrayOf(player.pos[0], player.pos[1])
-            when (_direction.toInt()) {
+            when (_direction) {
                 202 -> player.transPos[0]--
                 203 -> player.transPos[0]++
                 204 -> player.transPos[1]++
@@ -171,8 +179,8 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
             }
             player.ready = true
         } else {
-            if (_turn == player.session.turn) {
-                player.write("700")
+            if (_turn != player.session.turn) {
+                player.write("700 ${player.session.turn}")
             } else {
                 player.write("666")
             }
