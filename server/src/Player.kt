@@ -1,11 +1,14 @@
 import dk.im2b.server
 import java.net.Socket
+import java.nio.charset.Charset
 
 
 class Player(_id: Int, _socket: Socket, _session: Session) {
     var session: Session
-    var map = null
-    var pos = null
+    var pos = arrayOf(1, 1)
+    var transPos = arrayOf(1, 1)
+    var color = 0
+    var ready: Boolean = false
     var id: Int
         private set
     var socket: Socket
@@ -13,7 +16,7 @@ class Player(_id: Int, _socket: Socket, _session: Session) {
 
     var status: Status
 
-    enum class Status{
+    enum class Status {
         IDLING,
         LOBBY,
         READY,
@@ -21,34 +24,15 @@ class Player(_id: Int, _socket: Socket, _session: Session) {
         FINISHED
     }
 
-    init{
+    init {
         id = _id
         socket = _socket
         status = Status.IDLING
         session = _session
     }
 
-    fun command(_msg: String): String {
-        val msg = _msg.split(" ")
-        when (msg[0]){
-            //Запрос на создание сессии
-            "110" -> {
-                server.createSession(this)
-                return "505 ${session.id}"
-            }
-            //Запрос на подключение к сессии
-            "105" -> {
-                if (server.sessions.containsKey(msg[1].toInt())){
-                    var responce = server.sessions[msg[1].toInt()]!!.addPlayer(this)
-                    return responce
-                }
-                else{
-                    //Лобби не найдено
-                    return "506"
-                }
-            }
-            //Общая ошибка, распознать нельзя
-            else -> return "312"
-        }
+    //Функция передачи сообщения клиенту
+    fun write(_msg: String) {
+        socket.getOutputStream().write((_msg + '\n').toByteArray(Charset.defaultCharset()))
     }
 }
