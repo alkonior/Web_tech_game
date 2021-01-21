@@ -13,6 +13,7 @@
         <maven.compiler.target>15</maven.compiler.target>
     </properties>
 
+
     <repositories>
         <repository>
             <id>mavenCentral</id>
@@ -25,7 +26,7 @@
     </repositories>
 
     <build>
-        <sourceDirectory>src/</sourceDirectory>
+        <sourceDirectory>server/src/</sourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
@@ -38,6 +39,7 @@
                         <goals>
                             <goal>compile</goal>
                         </goals>
+
                     </execution>
                     <execution>
                         <id>test-compile</id>
@@ -47,6 +49,17 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.heroku.sdk</groupId>
+                <artifactId>heroku-maven-plugin</artifactId>
+                <version>3.0.3</version>
+                <configuration>
+                    <appName>mice-game</appName>
+                    <processTypes>
+                        <web>java $JAVA_OPTS -cp server/target/classes:server/target/dependency/* Server.kt</web>
+                    </processTypes>
+                </configuration>
             </plugin>
         </plugins>
     </build>
