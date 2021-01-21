@@ -1,4 +1,3 @@
-import dk.im2b.server
 import java.net.Socket
 import java.nio.charset.Charset
 

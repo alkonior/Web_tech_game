@@ -8,7 +8,7 @@ class Maze(_seed: String) {
 
     var maze: MutableList<MutableList<Int>> = MutableList(height) { MutableList(width) { 1 } }
 
-    operator fun get(x: Int, y:Int) : Int{
+    operator fun get(x: Int, y: Int): Int {
         return maze[x][y]
     }
 
