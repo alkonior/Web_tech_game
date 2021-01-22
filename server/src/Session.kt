@@ -1,4 +1,7 @@
 import java.awt.Point
+import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.timerTask
 import kotlin.random.Random
 
 class Session(_status: Status) {
@@ -9,6 +12,7 @@ class Session(_status: Status) {
     var turn: Int = 0
     var status: Status
     var ready: Int = 0
+    private val calculating: AtomicBoolean = AtomicBoolean(false)
 
 
     enum class Status {
@@ -96,21 +100,34 @@ class Session(_status: Status) {
     }
 
     private fun play() {
+        val running: AtomicBoolean = AtomicBoolean(false)
+        var currentTimer: Timer = Timer(false)
         while (true) {
+            if (!running.get()) {
+                running.set(true)
+                println("Idle таймер на $turn ход")
+                currentTimer = Timer("Game $turn $id", false)
+                currentTimer.schedule(timerTask { if(!calculating.get()) { doTurn(); running.set(false);
+                    calculating.set(false)} }, 5500)
+            }
             ready = 0
             for (x in players.values) {
                 if (x.ready) {
                     ready++
                 }
-                if (ready == playerCount) {
-                    doTurn()
-                    break
-                }
+            }
+            if (ready == playerCount && !calculating.get()) {
+                currentTimer.cancel()
+                println("Ручной ввод на $turn")
+                running.set(false)
+                doTurn()
+                calculating.set(false)
             }
         }
     }
 
     private fun doTurn() {
+        calculating.set(true)
         for (x in players.values) {
             if (maze[x.transPos[0], x.transPos[1]] != 1) {
                 maze.maze[x.pos[0]][x.pos[1]] -= x.color
@@ -127,7 +144,7 @@ class Session(_status: Status) {
                     "${maze[x.pos[0] - 1, x.pos[1]]} ${maze[x.pos[0] + 1, x.pos[1]]} " +
                     "${maze[x.pos[0], x.pos[1] + 1]} " + "${maze[x.pos[0], x.pos[1] - 1]} " +
                     "${maze[x.pos[0], x.pos[1]]}"
-            val positions = listOf<Point>(
+            val positions = listOf(
                 Point(x.pos[0] - 1, x.pos[1]), Point((x.pos[0] + 1), x.pos[1]),
                 Point(x.pos[0], (x.pos[1] + 1)), Point(x.pos[0], (x.pos[1] - 1)),
                 Point(x.pos[0], x.pos[1])

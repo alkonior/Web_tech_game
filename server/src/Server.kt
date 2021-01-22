@@ -65,7 +65,7 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         while (running) {
             try {
                 val text = reader.nextLine()
-                launch((Dispatchers.Default)) {
+                launch(Dispatchers.Default) {
                     command(text)
                 }
             } catch (ex: Exception) {
