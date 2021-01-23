@@ -1,3 +1,5 @@
+package main
+
 import java.awt.Point
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean

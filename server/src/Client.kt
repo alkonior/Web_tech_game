@@ -17,7 +17,7 @@ class Client(address: String, port: Int) {
     private var connected: Boolean = true
 
     init {
-        println("Connected to server at $address on port $port")
+        println("Connected to main.getServer at $address on port $port")
     }
 
     private val reader: Scanner = Scanner(connection.getInputStream())

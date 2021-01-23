@@ -1,3 +1,5 @@
+package main
+
 import java.io.OutputStream
 import java.net.ServerSocket
 import java.net.Socket
@@ -56,7 +58,7 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         writer = _client.getOutputStream()
         player = Player(_playerId, _client, _waitList)
         player.session.addPlayer(player)
-        println("Player ${player.id} was moved to the main lobby!")
+        println("main.Player ${player.id} was moved to the main.main lobby!")
     }
 
     fun run() = runBlocking {
