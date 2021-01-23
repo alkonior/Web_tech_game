@@ -290,7 +290,6 @@ class Game : View("Mice in lab.") {
                 val image3 = thirdLayer[i][j]
                 val label = textLayer[i][j]
 
-                val multylevel = multyKrisaLayer[i][j]
 
                 val cell = field[i + current_pos_x, j + current_pos_y];
 
@@ -307,6 +306,7 @@ class Game : View("Mice in lab.") {
                         CellValue.FLOOR -> floorimg;
                         CellValue.WALL -> wallimg;
                         CellValue.EXIT -> exitimg;
+                        CellValue.EROOR-> erroeimg;
                         else -> erroeimg
                     }
 
@@ -317,7 +317,7 @@ class Game : View("Mice in lab.") {
                     image2.image = i2
                 }
                 if (label.text != cell.text) {
-                    label.text = cell.text
+                    label.text = "$i and $j"
                 }
                 image3.isVisible=false
                 if ((i==field_.engine.cur_target_point.x) and (j==field_.engine.cur_target_point.y))

@@ -32,16 +32,17 @@ class Server {
     }
 
     fun sendMess(mess: String): Boolean {
+        println(31/2)
         if(_socket.isConnected)
         {
             try {
                 _socket.getOutputStream().write((mess + '\n').toByteArray(Charset.defaultCharset()))
                 println(mess)
             } catch (exception:Throwable){
-                throw SocketException("Socket write error")
+
             }
         }else{
-            throw SocketException("Socket isn't connected")
+
         }
         return true
     }

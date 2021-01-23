@@ -8,6 +8,7 @@ enum class CellValue {
     VOID,
     FLOOR,
     WALL,
+    EROOR,
     EXIT
 }
 
@@ -16,6 +17,7 @@ fun  IntToCell(i:Int): CellValue {
         0 -> CellValue.FLOOR
         1 -> CellValue.WALL
         2 -> CellValue.EXIT
+        1488 -> CellValue.EROOR
         else -> CellValue.FLOOR
     }
 }
