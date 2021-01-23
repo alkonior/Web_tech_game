@@ -32,7 +32,6 @@ class Server {
     }
 
     fun sendMess(mess: String): Boolean {
-        println(31/2)
         if(_socket.isConnected)
         {
             try {
