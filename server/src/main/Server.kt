@@ -58,7 +58,7 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         writer = _client.getOutputStream()
         player = Player(_playerId, _client, _waitList)
         player.session.addPlayer(player)
-        println("main.Player ${player.id} was moved to the main.main lobby!")
+        println("Player ${player.id} was moved to the main lobby!")
     }
 
     fun run() = runBlocking {
@@ -87,7 +87,6 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         val code: Int
         try {
             code = msg[0].toInt()
-            println("$code from ${player.id}")
             when (code) {
                 //Запрос на создание сессии
                 110 -> {
@@ -153,7 +152,8 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
 
     //Функция выхода из лобби
     private fun back() {
-        if (player.status == Player.Status.LOBBY || player.status == Player.Status.READY) {
+        if (player.status == Player.Status.LOBBY || player.status == Player.Status.READY ||
+            player.session.status == Session.Status.FINISHED) {
             if (player.session.playerCount != 1) {
                 player.session.removePlayer(player)
             } else {

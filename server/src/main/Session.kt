@@ -40,13 +40,25 @@ class Session(_status: Status) {
     private fun generateMap(): Maze {
         var maze: Maze = Maze("${Random.nextInt()}") // <---------- СИД СЮДА
         maze.mazeMake()
-        while (maze[1, 1] != 0 || maze[29, 29] != 0 || maze[1, 29] != 0 || maze[29, 1] != 0
-            || maze[15, 15] != 0
+        while (maze[1, 1] != 0 || maze[maze.width-2, maze.height-2] != 0 || maze[1, maze.height-2] != 0 ||
+            maze[maze.width-2, 1] != 0 || maze[maze.width/2, maze.height/2] != 0
         ) {
             maze = Maze("${Random.nextInt()}")
             maze.mazeMake()
         }
-        maze.maze[15][15] = 2
+        //Упрощения лабиринта по просьбе Alkonior
+        val percent = 10
+        for (i in 1..maze.width-2){
+            for (j in 1..maze.height-2){
+                if(maze[i,j] == 1){
+                    if(Random.nextInt(100) <= percent){
+                        maze.maze[i][j] = 0
+                    }
+                }
+            }
+        }
+        //Установка выхода
+        maze.maze[maze.width/2][maze.height/2] = 2
         return maze
     }
 
@@ -85,9 +97,9 @@ class Session(_status: Status) {
             x.status = Player.Status.INGAME
             when (color) {
                 3 -> x.pos = arrayOf(1, 1)
-                4 -> x.pos = arrayOf(1, 29)
-                5 -> x.pos = arrayOf(29, 1)
-                6 -> x.pos = arrayOf(29, 29)
+                4 -> x.pos = arrayOf(1, maze.height - 2)
+                5 -> x.pos = arrayOf(maze.width - 2, 1)
+                6 -> x.pos = arrayOf(maze.width - 2, maze.height - 2)
             }
             x.transPos = arrayOf(x.pos[0], x.pos[1])
             maze.maze[x.pos[0]][x.pos[1]] += color
@@ -138,8 +150,25 @@ class Session(_status: Status) {
                 x.pos = arrayOf(x.transPos[0], x.transPos[1])
                 maze.maze[x.pos[0]][x.pos[1]] += x.color
             }
+            //Если мышь дошла до выхода
+            if(x.pos[0] == maze.width/2 && x.pos[1] == maze.height/2){
+                status = Status.FINISHED
+                x.status = Player.Status.FINISHED
+            }
         }
-        newTurn()
+        if(status == Status.FINISHED){
+            var msg = "555"
+            for (x in players.values){
+                if(x.status == Player.Status.FINISHED){
+                    msg += " ${x.id} ${x.color}"
+                }
+            }
+            for (x in players.values){
+                x.write(msg)
+            }
+        } else {
+            newTurn()
+        }
     }
 
     private fun newTurn() {
