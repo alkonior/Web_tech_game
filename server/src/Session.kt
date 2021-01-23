@@ -1,5 +1,7 @@
 import java.awt.Point
-import kotlin.math.abs
+import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.timerTask
 import kotlin.random.Random
 
 class Session(_status: Status) {
@@ -10,110 +12,8 @@ class Session(_status: Status) {
     var turn: Int = 0
     var status: Status
     var ready: Int = 0
+    private val calculating: AtomicBoolean = AtomicBoolean(false)
 
-    private class Maze(_seed: String) {
-        var random: Random = Random(_seed.hashCode())
-        val height: Int = 31
-        val width: Int = 31
-
-        var maze: MutableList<MutableList<Int>> = MutableList(height) { MutableList(width) { 1 } }
-
-        operator fun get(x: Int, y:Int) : Int{
-            return maze[x][y]
-        }
-
-        fun mazeMake() {
-            var x: Int = 3
-            var y: Int = 3
-            var c: Int
-            var a: Int = 0
-
-            while (a < 100) {
-                maze[y][x] = 0
-                a++
-                while (true) {
-                    c = abs(random.nextInt() % 4)
-                    when (c) {
-                        0 -> {
-                            if (y != 1) {
-                                if (maze[y - 2][x] == 1) { //Путь вверх
-                                    maze[y - 1][x] = 0
-                                    maze[y - 2][x] = 0
-                                    y -= 2
-                                }
-                            }
-                        }
-                        1 -> {
-                            if (y != height - 2) {
-                                if (maze[y + 2][x] == 1) { //Вниз
-                                    maze[y + 1][x] = 0
-                                    maze[y + 2][x] = 0
-                                    y += 2
-                                }
-                            }
-                        }
-                        2 -> {
-                            if (x != 1) {
-                                if (maze[y][x - 2] == 1) { //Налево
-                                    maze[y][x - 1] = 0
-                                    maze[y][x - 2] = 0
-                                    x -= 2
-
-                                }
-                            }
-                        }
-
-                        3 -> {
-                            if (x != width - 2) {
-                                if (maze[y][x + 2] == 1) { //Направо
-                                    maze[y][x + 1] = 0
-                                    maze[y][x + 2] = 0
-                                    x += 2
-                                }
-                            }
-                        }
-                    }
-                    if (deadend(x, y)) {
-                        break
-                    }
-                }
-                if (deadend(x, y)) {
-                    do {
-                        x = 2 * (abs(random.nextInt()) % ((width - 1) / 2)) + 1
-                        y = 2 * (abs(random.nextInt()) % ((height - 1) / 2)) + 1
-                    } while (maze[y][x] != 0)
-                }
-            }
-        }
-
-        private fun deadend(x: Int, y: Int): Boolean {
-            var a: Int = 0
-
-            if (x != 1) {
-                if (maze[y][x - 2] == 0)
-                    a += 1
-            } else a += 1
-
-            if (y != 1) {
-                if (maze[y - 2][x] == 0)
-                    a += 1
-            } else a += 1
-
-            if (x != width - 2) {
-                if (maze[y][x + 2] == 0)
-                    a += 1
-            } else a += 1
-
-            if (y != height - 2) {
-                if (maze[y + 2][x] == 0)
-                    a += 1
-            } else a += 1
-
-            return (a == 4)
-        }
-
-
-    }
 
     enum class Status {
         IDLING,
@@ -200,21 +100,34 @@ class Session(_status: Status) {
     }
 
     private fun play() {
+        val running: AtomicBoolean = AtomicBoolean(false)
+        var currentTimer: Timer = Timer(false)
         while (true) {
+            if (!running.get()) {
+                running.set(true)
+                println("Idle таймер на $turn ход")
+                currentTimer = Timer("Game $turn $id", false)
+                currentTimer.schedule(timerTask { if(!calculating.get()) { doTurn(); running.set(false);
+                    calculating.set(false)} }, 5500)
+            }
             ready = 0
             for (x in players.values) {
                 if (x.ready) {
                     ready++
                 }
-                if (ready == playerCount) {
-                    doTurn()
-                    break
-                }
+            }
+            if (ready == playerCount && !calculating.get()) {
+                currentTimer.cancel()
+                println("Ручной ввод на $turn")
+                running.set(false)
+                doTurn()
+                calculating.set(false)
             }
         }
     }
 
     private fun doTurn() {
+        calculating.set(true)
         for (x in players.values) {
             if (maze[x.transPos[0], x.transPos[1]] != 1) {
                 maze.maze[x.pos[0]][x.pos[1]] -= x.color
@@ -231,7 +144,7 @@ class Session(_status: Status) {
                     "${maze[x.pos[0] - 1, x.pos[1]]} ${maze[x.pos[0] + 1, x.pos[1]]} " +
                     "${maze[x.pos[0], x.pos[1] + 1]} " + "${maze[x.pos[0], x.pos[1] - 1]} " +
                     "${maze[x.pos[0], x.pos[1]]}"
-            val positions = listOf<Point>(
+            val positions = listOf(
                 Point(x.pos[0] - 1, x.pos[1]), Point((x.pos[0] + 1), x.pos[1]),
                 Point(x.pos[0], (x.pos[1] + 1)), Point(x.pos[0], (x.pos[1] - 1)),
                 Point(x.pos[0], x.pos[1])
