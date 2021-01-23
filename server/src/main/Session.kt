@@ -105,27 +105,28 @@ class Session(_status: Status) {
     private fun play() {
         val running: AtomicBoolean = AtomicBoolean(false)
         var currentTimer: Timer = Timer(false)
-        while (true) {
-            if (!running.get()) {
-                running.set(true)
-                println("Idle таймер на $turn ход")
-                currentTimer = Timer("Game $turn $id", false)
-                currentTimer.schedule(timerTask { if(!calculating.get()) { doTurn(); running.set(false);
-                    calculating.set(false)} }, 5500)
-            }
-            ready = 0
-            for (x in players.values) {
-                if (x.ready) {
-                    ready++
+        while (status == Status.INGAME) {
+                if (!running.get()) {
+                    running.set(true)
+                    currentTimer = Timer("Game $turn $id", false)
+                    currentTimer.schedule(timerTask {
+                        if (!calculating.get()) {
+                            doTurn(); running.set(false); calculating.set(false)
+                        }
+                    }, 5500)
                 }
-            }
-            if (ready == playerCount && !calculating.get()) {
-                currentTimer.cancel()
-                println("Ручной ввод на $turn")
-                running.set(false)
-                doTurn()
-                calculating.set(false)
-            }
+                ready = 0
+                for (x in players.values) {
+                    if (x.ready) {
+                        ready++
+                    }
+                }
+                if (ready == playerCount && !calculating.get()) {
+                    currentTimer.cancel()
+                    running.set(false)
+                    doTurn()
+                    calculating.set(false)
+                }
         }
     }
 

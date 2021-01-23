@@ -214,6 +214,7 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         println("${player.socket.inetAddress.hostAddress} with id ${player.id} closed the connection")
         player.session.removePlayer(player)
         if (player.session.playerCount == 0 && player.session.status != Session.Status.IDLING) {
+            server.sessions[player.session.id]!!.status = Session.Status.IDLING
             server.deleteSession(player.session.id)
         }
     }
