@@ -298,6 +298,7 @@ class GameEngine : EventListener {
         {
             move_mouse_to(cur_target_point.x,cur_target_point.y)
         }
+        cur_second.value = 0;
     }
 
     fun createLobby() {
