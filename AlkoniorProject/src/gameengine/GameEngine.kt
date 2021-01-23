@@ -152,7 +152,7 @@ class GameEngine : EventListener {
             //Сессия полная
             "507" -> throw Throwable("Session is full.")
             "508" -> playersReady("0", msg[1])
-            "700" -> cur_turn = msg[1].toInt()
+            "700" -> cur_turn.value = msg[1].toInt()
             "510" -> start_game(msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], msg[7], msg[8], msg[9], msg[10])
             "777" -> make_turn(msg[1], msg[2], msg[3], msg[4], msg[5], msg[6],msg[7],msg[8],msg)
             else -> {
@@ -185,7 +185,7 @@ class GameEngine : EventListener {
         }
     }
 
-    var cur_turn = 0
+    var cur_turn = SimpleIntegerProperty(0)
     var cur_direction = 0
     var cur_player_pos = Point()
 
@@ -198,7 +198,7 @@ class GameEngine : EventListener {
         var move = bot.findWayTo()
         cur_direction = move.toInt()
         
-        server.sendMess(move.toString()+" "+cur_turn)
+        server.sendMess(move.toString()+" "+cur_turn.value)
 
     }
 
@@ -292,7 +292,7 @@ class GameEngine : EventListener {
         }
         field.ping()
 
-        cur_turn = turn.toInt()+1
+        cur_turn.value = turn.toInt()+1
 
         if (cur_target_point != cur_player_pos)
         {

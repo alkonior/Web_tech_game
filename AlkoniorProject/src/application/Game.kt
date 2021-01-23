@@ -30,6 +30,7 @@ class Game : View("Mice in lab.") {
     val fieldview: GridPane by fxid()
     val fieldcontaner: AnchorPane by fxid()
     val SessionId: Label by fxid()
+    val TurnNumber: Label by fxid()
     val timer: Slider by fxid()
 
     private var screen_width: Int = 0
@@ -168,6 +169,9 @@ class Game : View("Mice in lab.") {
         }
 
 
+        field_.engine.cur_turn.addListener(ChangeListener{ observableValue: ObservableValue<out Number>?, number: Number, number1: Number ->
+            Platform.runLater({  TurnNumber.text = field_.engine.cur_turn.value.toString()})
+        })
         fieldcontaner.onMouseDragged = EventHandler<MouseEvent> { event -> dragNdrop(event) }
         fieldcontaner.onMousePressed = EventHandler<MouseEvent> { event ->
             run {
@@ -206,17 +210,19 @@ class Game : View("Mice in lab.") {
         fieldcontaner.onMouseClicked = EventHandler<MouseEvent> { event ->
             run {
                 val point = Point2D(event.getSceneX(), event.getSceneY())
-               /* println(
+               /*
+                println(
                     "x = ${(((event.getSceneX() - field_margine_x).toInt()) / cellSize) + current_pos_x};" +
                             " y = ${(((event.getSceneY() - field_margine_y).toInt()) / cellSize) + current_pos_y}\n" +
                             "field_margine_x = ${field_margine_x}, field_margine_y = ${field_margine_y}\n" +
-                            "current_pos_x = ${current_pos_x}, current_pos_y = ${current_pos_y}," +
-                            ""
-                );*/
+                            "current_pos_x = ${current_pos_x}, current_pos_y = ${current_pos_y},"
+                );
+                */
                 clicked_point_x = (((event.getSceneX() - field_margine_x).toInt()) / cellSize)
                 clicked_point_y = (((event.getSceneY() - field_margine_y-40).toInt()) / cellSize)
                 mouse_clicked(clicked_point_x, clicked_point_y);
                 field_.engine.move_mouse_to(clicked_point_x, clicked_point_y)
+                upade_view(field)
             }
         }
         AnchorPane.setLeftAnchor(fieldview, field_margine_x);
@@ -290,6 +296,10 @@ class Game : View("Mice in lab.") {
                 val image3 = thirdLayer[i][j]
                 val label = textLayer[i][j]
 
+                var mimages = multyKrisaLayer[i][j]
+
+                for (m in mimages)
+                    m.isVisible=false
 
                 val cell = field[i + current_pos_x, j + current_pos_y];
 
