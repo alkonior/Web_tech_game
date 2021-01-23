@@ -328,6 +328,10 @@ class Game : View("Mice in lab.") {
             else
                 players.put(player.p, mutableListOf(player.color))
         }
+        if (players.containsKey(Point(0,0)))
+        {
+            players.remove(Point(0,0))
+        }
 
         for (value in players)
         {

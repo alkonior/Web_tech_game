@@ -11,6 +11,15 @@ enum class CellValue {
     EXIT
 }
 
+fun  IntToCell(i:Int): CellValue {
+    return when (i){
+        0 -> CellValue.FLOOR
+        1 -> CellValue.WALL
+        2 -> CellValue.EXIT
+        else -> CellValue.FLOOR
+    }
+}
+
 enum class MouseValue {
     RED,
     BLUE,
@@ -33,7 +42,7 @@ class GameField(var width: Int, var height: Int) : Observable {
     private val listeners = mutableMapOf<Int, InvalidationListener>();
 
     private var field =
-        MutableList<MutableList<CellInfo>>(width) { MutableList<CellInfo>(height) { CellInfo(CellValue.VOID, 0) } };
+        MutableList<MutableList<CellInfo>>(width) { MutableList<CellInfo>(height) { CellInfo(CellValue.VOID, 1) } };
 
     public var players_position = mutableListOf<Mouse>()
 
@@ -51,15 +60,10 @@ class GameField(var width: Int, var height: Int) : Observable {
                 field[i][j].value = CellValue.VOID
             }
         }
-        players_position.add(Mouse(Point(1,1), MouseValue.BLUE))
-        players_position.add(Mouse(Point(3,3), MouseValue.RED))
-        players_position.add(Mouse(Point(3,3), MouseValue.GREEN))
-        this[1,1].shadow = 0
-        this[3,3].shadow = 0
     }
 
 
-    constructor() : this(10, 10) {
+    constructor() : this(0, 0) {
     }
 
 

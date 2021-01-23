@@ -5,7 +5,7 @@ import java.util.*
 import kotlin.concurrent.thread
 
 fun main(args: Array<String>) {
-    val address = "localhost"
+    val address = "87.225.66.90"
     val port = 2020
 
     val client = Client(address, port)

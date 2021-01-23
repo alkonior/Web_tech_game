@@ -2,6 +2,7 @@ package gameengine
 
 import bot.MouseBot
 import field.GameField
+import field.IntToCell
 import field.Mouse
 import field.MouseValue
 import javafx.beans.InvalidationListener
@@ -14,12 +15,13 @@ import kotlinx.coroutines.*
 import java.awt.Point
 import kotlin.concurrent.thread
 
-class GameEngine:EventListener {
-    public enum class GameStage{
+class GameEngine : EventListener {
+    public enum class GameStage {
         ServerConnection,
         LobbyConnection,
         Lobby,
-        Game
+        Game,
+        Die
     }
 
     public var current_stage = SimpleObjectProperty<GameStage>(GameStage.ServerConnection);
@@ -33,7 +35,7 @@ class GameEngine:EventListener {
         }
     }
 
-    public var lastError  = SimpleObjectProperty<Throwable?>(null)
+    public var lastError = SimpleObjectProperty<Throwable?>(null)
 
     lateinit var main_thread: Thread;
 
@@ -45,12 +47,26 @@ class GameEngine:EventListener {
 
     public var sessionId = "AAAAAA";
 
-    public  var playersInLobby = SimpleIntegerProperty(0)
-    public  var playersReadyLobby = SimpleIntegerProperty(0)
+    public var playersInLobby = SimpleIntegerProperty(0)
+    public var playersReadyLobby = SimpleIntegerProperty(0)
 
 
     init {
-        current_stage.addListener(InvalidationListener { lastError.value = null })
+        current_stage.addListener(InvalidationListener {
+            lastError.value = null
+        })
+        current_stage.addListener(InvalidationListener {
+            if (current_stage.value == GameStage.Die) {
+                try {
+                    if (this::main_thread.isInitialized) {
+                        main_thread.interrupt()
+                        timer.cancel()
+                    }
+                    server.close()
+                } catch (ex: Throwable) {
+                }
+            }
+        })
     }
 
     fun connect(ip: String, port: String): Boolean {
@@ -62,13 +78,18 @@ class GameEngine:EventListener {
                     main_thread.join()
                 }
                 main_thread = thread {
-                    server_comand_reeder()
+
+                    try {
+                        server_comand_reeder()
+                    } catch (ex: Throwable) {
+                        lastError.value = ex
+                    }
                 }
 
                 return true;
-            }else
+            } else
                 return false
-        }else
+        } else
             return false
     }
 
@@ -98,82 +119,78 @@ class GameEngine:EventListener {
 
     fun server_comand_reeder() = runBlocking {
         coroutineScope {
-            while (current_stage.value != GameStage.ServerConnection) {
-                var mes = server.getMess()
-                launch(Dispatchers.Default) {
+            try {
+                while (current_stage.value != GameStage.ServerConnection) {
                     try {
-
-                        command(mes)
-                    }
-                    catch (ex: Throwable)
-                    {
+                        var mes = server.getMess()
+                        launch(Dispatchers.Default) {
+                            try {
+                                command(mes)
+                            } catch (ex: Throwable) {
+                                lastError.value = ex
+                            }
+                        }
+                        delay(50)
+                    } catch (ex: Throwable) {
                         lastError.value = ex
                     }
                 }
-                delay(50)
+            } catch (ex: Throwable) {
+                lastError.value = ex
             }
         }
     }
 
     suspend fun command(_msg: String) {
-    val msg = _msg.split(" ")
-    when (msg[0]) {
-        //Запрос на создание сессии
-        "500" -> {}
-        //Удачное создание лобби
-        "505" -> sucsessLobbyCreation(msg[1])
-        //Удачное присоединение к лобби
-        "509" -> sucsessLobbyConnection(msg[1],msg[2])
-        //Сессия не существует
-        "506" -> throw Throwable("Session doesn't exist.")
-        //Сессия полная
-        "507" -> throw Throwable("Session is full.")
-        "508" -> playersReady("0",msg[1])
-        "510" -> start_game(msg[1],msg[2],msg[3],msg[4],msg[5],msg[6],msg[7],msg[8],msg[9],msg[10])
-        "777" -> make_turn(msg[1],msg[2],msg[3],msg[4],msg[5], msg)
-        else -> {}
-    }
-}
-
-    private fun make_turn(
-        left: String,
-        right: String,
-        down: String,
-        up: String,
-        center: String,
-        msg: List<String>) {
-        
-
-
+        val msg = _msg.split(" ")
+        when (msg[0]) {
+            //Запрос на создание сессии
+            "500" -> {
+            }
+            //Удачное создание лобби
+            "505" -> sucsessLobbyCreation(msg[1])
+            //Удачное присоединение к лобби
+            "509" -> sucsessLobbyConnection(msg[1], msg[2])
+            //Сессия не существует
+            "506" -> throw Throwable("Session doesn't exist.")
+            //Сессия полная
+            "507" -> throw Throwable("Session is full.")
+            "508" -> playersReady("0", msg[1])
+            "510" -> start_game(msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], msg[7], msg[8], msg[9], msg[10])
+            "777" -> make_turn(msg[1], msg[2], msg[3], msg[4], msg[5], msg)
+            else -> {
+            }
+        }
     }
 
-    private fun playersReady(s1: String, s2: String) {
-        playersInLobby.value = s1.toInt() + s2.toInt()
+
+    private suspend fun playersReady(s1: String, s2: String) {
+        playersInLobby.value = s2.toInt()
         playersReadyLobby.value = s1.toInt()
     }
 
     private suspend fun sucsessLobbyConnection(s: String, s1: String) {
-        if (current_stage.value==GameStage.LobbyConnection){
-            sessionId = s
+        if (current_stage.value == GameStage.LobbyConnection) {
+            playersReady(s, s1)
             current_stage.value = GameStage.Lobby
-            delay(20)
-            playersReady(s,s1)
         }
-        if (current_stage.value==GameStage.Lobby)
-        {
-            playersReady(s,s1)
+        if (current_stage.value == GameStage.Lobby) {
+            playersReady(s, s1)
         }
     }
 
     private suspend fun sucsessLobbyCreation(s: String) {
-        if (current_stage.value==GameStage.LobbyConnection){
+        if (current_stage.value == GameStage.LobbyConnection) {
             sessionId = s
+            playersInLobby.value = 1
+            playersReadyLobby.value = 0
             current_stage.value = GameStage.Lobby
-
         }
-
     }
 
+    var cur_turn = 0
+    var cur_direction = 0
+    var cur_player_pos = Point()
 
     suspend fun start_game(
         color: String,
@@ -189,40 +206,96 @@ class GameEngine:EventListener {
     ) {
         timer.schedule(timerTask, 0, delay_seconds.toLong())
 
-        field = GameField(width.toInt(),height.toInt())
-        for( i in 1..(playersInLobby.value))
-        {
-            field.players_position.add(Mouse(Point(0,0),
-                listOf(MouseValue.RED,MouseValue.YELLOW,MouseValue.BLUE,MouseValue.GREEN)[(i-1)%4]
-            ))
+        field = GameField(width.toInt(), height.toInt())
+        for (i in 1..(playersInLobby.value)) {
+            field.players_position.add(
+                Mouse(
+                    Point(0, 0),
+                    listOf(MouseValue.RED, MouseValue.YELLOW, MouseValue.BLUE, MouseValue.GREEN)[(i - 1) % 4]
+                )
+            )
         }
-        field.players_position[color.toInt()-3].p= Point(x.toInt(),y.toInt())
+
+        field.players_position[color.toInt() - 3].p = Point(x.toInt(), y.toInt())
+        cur_player_pos = Point(x.toInt(), y.toInt())
+
+        make_turn(
+            left,
+            right,
+            down,
+            up,
+            center, listOf()
+        );
+        cur_turn--;
+
+        current_stage.value = GameStage.Game
+    }
 
 
+    private fun make_turn(
+        left: String,
+        right: String,
+        down: String,
+        up: String,
+        center: String,
+        msg: List<String>
+    ) {
+
+        field[cur_player_pos.x, cur_player_pos.y].shadow = 1
+        field[cur_player_pos.x + 1, cur_player_pos.y].shadow = 1
+        field[cur_player_pos.x - 1, cur_player_pos.y].shadow = 1
+        field[cur_player_pos.x, cur_player_pos.y + 1].shadow = 1
+        field[cur_player_pos.x, cur_player_pos.y - 1].shadow = 1
+
+        when (cur_direction) {
+            1 -> cur_player_pos.x--
+            2 -> cur_player_pos.x++
+            1 -> cur_player_pos.y--
+            1 -> cur_player_pos.y++
+        }
+
+        field[cur_player_pos.x, cur_player_pos.y].value = IntToCell(center.toInt())
+        field[cur_player_pos.x - 1, cur_player_pos.y].value = IntToCell(left.toInt())
+        field[cur_player_pos.x + 1, cur_player_pos.y].value = IntToCell(right.toInt())
+        field[cur_player_pos.x, cur_player_pos.y - 1].value = IntToCell(up.toInt())
+        field[cur_player_pos.x, cur_player_pos.y + 1].value = IntToCell(down.toInt())
+
+        field[cur_player_pos.x, cur_player_pos.y].shadow = 0
+        field[cur_player_pos.x + 1, cur_player_pos.y].shadow = 0
+        field[cur_player_pos.x - 1, cur_player_pos.y].shadow = 0
+        field[cur_player_pos.x, cur_player_pos.y + 1].shadow = 0
+        field[cur_player_pos.x, cur_player_pos.y - 1].shadow = 0
+
+        field.ping()
+
+        var k = 0
+        for (i in 6 until msg.size step 2) {
+            field.players_position[k].p.x = msg[i].toInt()
+            field.players_position[k].p.x = msg[i + 1].toInt()
+            k++
+        }
     }
 
     fun createLobby() {
-        if (current_stage.value == GameStage.LobbyConnection)
-        {
+        if (current_stage.value == GameStage.LobbyConnection) {
             server.sendMess("110")
         }
     }
 
-    fun connectLobby(id :String) {
+    fun connectLobby(id: String) {
         if (current_stage.value == GameStage.LobbyConnection) {
+            sessionId = id
             server.sendMess("105 ${id}")
         }
     }
 
 
-    fun playerReady()
-    {
+    fun playerReady() {
         if (current_stage.value == GameStage.Lobby)
             server.sendMess("112")
     }
 
-    fun playerBack()
-    {
+    fun playerBack() {
         if (current_stage.value == GameStage.Lobby) {
             server.sendMess("106")
             current_stage.value = GameStage.LobbyConnection

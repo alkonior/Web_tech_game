@@ -57,4 +57,8 @@ class Server {
         else
             throw Throwable("Server isn't connected")
     }
+
+    fun close() {
+        _socket.close()
+    }
 }

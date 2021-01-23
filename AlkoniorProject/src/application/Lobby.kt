@@ -22,7 +22,7 @@ class Lobby : View("Mice in lab.") {
         currentStage?.width = 640.0
         currentStage?.height = 640.0
         lobyId.text = gameEngine.sessionId
-        lobyId.text = "0/1"
+        playersCount.text = "${gameEngine.playersReadyLobby.value} / ${gameEngine.playersInLobby.value}"
         gameEngine.playersReadyLobby.addListener(InvalidationListener {
             Platform.runLater {
                 playersCount.text = "${gameEngine.playersReadyLobby.value} / ${gameEngine.playersInLobby.value}"
@@ -33,17 +33,8 @@ class Lobby : View("Mice in lab.") {
                 playersCount.text = "${gameEngine.playersReadyLobby.value} / ${gameEngine.playersInLobby.value}"
             }
         })
-        gameEngine.current_stage.addListener(InvalidationListener {
-            Platform.runLater {
-                if (gameEngine.current_stage.value == GameEngine.GameStage.Lobby) {
-                    val model = GameFieldModel(gameEngine);
-                    val fragmentScope = Scope()
-                    setInScope(model, fragmentScope)
-                    val gameview = find<LobbyConnect>(fragmentScope)
-                    replaceWith(gameview)
-                }
-            }
-        })
+
+
     }
 
 
