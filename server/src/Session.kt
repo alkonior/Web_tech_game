@@ -109,7 +109,7 @@ class Session(_status: Status) {
                 println("Idle таймер на $turn ход")
                 currentTimer = Timer("Game $turn $id", false)
                 currentTimer.schedule(timerTask { if(!calculating.get()) { doTurn(); running.set(false);
-                    calculating.set(false)} }, 5500)
+                    calculating.set(false)} }, 550000000000)
             }
             ready = 0
             for (x in players.values) {

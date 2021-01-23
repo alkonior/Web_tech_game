@@ -56,6 +56,8 @@ class Game : View("Mice in lab.") {
     private val fogimg = Image("/img/fog.png")
     private val nothingimg = Image("/img/nothing.png")
     private val erroeimg = Image("/img/error.png")
+    private val exitimg = Image("/img/exit.png")
+    private val targetimg = Image("/img/target.png")
 
     private val playersimgs = listOf(
         Image("/img/first.png"),
@@ -126,6 +128,8 @@ class Game : View("Mice in lab.") {
                 image3.fitWidth = cellSize * 1.0;
                 image3.fitHeight = cellSize * 1.0;
 
+                image3.image = targetimg
+
                 val panel = FlowPane()
                 panel.prefWidth = 64.0
                 panel.prefHeight = 64.0
@@ -183,9 +187,7 @@ class Game : View("Mice in lab.") {
                 run {
                     max_screen_height = (((currentStage?.getHeight()?.toInt() ?: 0) + cellSize - 1) / cellSize);
                     max_screen_width = (((currentStage?.getWidth()?.toInt() ?: 0) + cellSize - 1) / cellSize);
-                    println(
-                        "Height: " + max_screen_height + " Width: " + max_screen_width
-                    )
+
                     fixmagrine(0.0, 0.0);
                 }
             }
@@ -204,17 +206,17 @@ class Game : View("Mice in lab.") {
         fieldcontaner.onMouseClicked = EventHandler<MouseEvent> { event ->
             run {
                 val point = Point2D(event.getSceneX(), event.getSceneY())
-                println(
+               /* println(
                     "x = ${(((event.getSceneX() - field_margine_x).toInt()) / cellSize) + current_pos_x};" +
                             " y = ${(((event.getSceneY() - field_margine_y).toInt()) / cellSize) + current_pos_y}\n" +
                             "field_margine_x = ${field_margine_x}, field_margine_y = ${field_margine_y}\n" +
                             "current_pos_x = ${current_pos_x}, current_pos_y = ${current_pos_y}," +
                             ""
-                );
-                clicked_point_x = (((event.getSceneX() - field_margine_x).toInt()) / cellSize) + current_pos_x
-                clicked_point_y = (((event.getSceneY() - field_margine_y).toInt()) / cellSize) + current_pos_y
+                );*/
+                clicked_point_x = (((event.getSceneX() - field_margine_x).toInt()) / cellSize)
+                clicked_point_y = (((event.getSceneY() - field_margine_y-40).toInt()) / cellSize)
                 mouse_clicked(clicked_point_x, clicked_point_y);
-
+                field_.engine.move_mouse_to(clicked_point_x, clicked_point_y)
             }
         }
         AnchorPane.setLeftAnchor(fieldview, field_margine_x);
@@ -285,6 +287,7 @@ class Game : View("Mice in lab.") {
 
                 val image1 = firstLayer[i][j]
                 val image2 = secondLayer[i][j]
+                val image3 = thirdLayer[i][j]
                 val label = textLayer[i][j]
 
                 val multylevel = multyKrisaLayer[i][j]
@@ -303,7 +306,7 @@ class Game : View("Mice in lab.") {
                         CellValue.VOID -> fogimg;
                         CellValue.FLOOR -> floorimg;
                         CellValue.WALL -> wallimg;
-                        CellValue.EXIT -> krisaimg;
+                        CellValue.EXIT -> exitimg;
                         else -> erroeimg
                     }
 
@@ -315,6 +318,11 @@ class Game : View("Mice in lab.") {
                 }
                 if (label.text != cell.text) {
                     label.text = cell.text
+                }
+                image3.isVisible=false
+                if ((i==field_.engine.cur_target_point.x) and (j==field_.engine.cur_target_point.y))
+                {
+                    image3.isVisible=true
                 }
             }
         }

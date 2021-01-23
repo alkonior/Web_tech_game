@@ -1,10 +1,8 @@
 package gameengine
 
 import bot.MouseBot
-import field.GameField
-import field.IntToCell
-import field.Mouse
-import field.MouseValue
+import bot.SimpleBot
+import field.*
 import javafx.beans.InvalidationListener
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
@@ -43,9 +41,9 @@ class GameEngine : EventListener {
     private val delay_seconds = 100
 
     private var server = Server();
-    private lateinit var bot: MouseBot;
+    private  var bot = SimpleBot(field, Point(), Point());
 
-    public var sessionId = "AAAAAA";
+    public var sessionId = "";
 
     public var playersInLobby = SimpleIntegerProperty(0)
     public var playersReadyLobby = SimpleIntegerProperty(0)
@@ -112,9 +110,7 @@ class GameEngine : EventListener {
         }
     }
 
-    fun move_mouse_to(x: Int, y: Int) {
 
-    }
 
 
     fun server_comand_reeder() = runBlocking {
@@ -156,8 +152,9 @@ class GameEngine : EventListener {
             //Сессия полная
             "507" -> throw Throwable("Session is full.")
             "508" -> playersReady("0", msg[1])
+            "700" -> cur_turn = msg[1].toInt()
             "510" -> start_game(msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], msg[7], msg[8], msg[9], msg[10])
-            "777" -> make_turn(msg[1], msg[2], msg[3], msg[4], msg[5], msg)
+            "777" -> make_turn(msg[1], msg[2], msg[3], msg[4], msg[5], msg[6],msg[7],msg[8],msg)
             else -> {
             }
         }
@@ -192,6 +189,19 @@ class GameEngine : EventListener {
     var cur_direction = 0
     var cur_player_pos = Point()
 
+    var cur_target_point = Point(0,0)
+
+    fun move_mouse_to(x: Int, y: Int) {
+        cur_target_point =  Point(x,y)
+        bot.target =  Point(x,y)
+
+        var move = bot.findWayTo()
+        cur_direction = move.toInt()
+        
+        server.sendMess(move.toString()+" "+cur_turn)
+
+    }
+
     suspend fun start_game(
         color: String,
         width: String,
@@ -218,21 +228,31 @@ class GameEngine : EventListener {
 
         field.players_position[color.toInt() - 3].p = Point(x.toInt(), y.toInt())
         cur_player_pos = Point(x.toInt(), y.toInt())
-
+        cur_target_point = cur_player_pos
         make_turn(
+            "-1",
+            x,
+            y,
             left,
             right,
             down,
             up,
             center, listOf()
         );
-        cur_turn--;
+
+        field[15,15].value = CellValue.EXIT
+
+        bot = SimpleBot(field, cur_player_pos, cur_target_point);
+
 
         current_stage.value = GameStage.Game
     }
 
 
     private fun make_turn(
+        turn : String,
+        x: String,
+        y: String,
         left: String,
         right: String,
         down: String,
@@ -247,12 +267,8 @@ class GameEngine : EventListener {
         field[cur_player_pos.x, cur_player_pos.y + 1].shadow = 1
         field[cur_player_pos.x, cur_player_pos.y - 1].shadow = 1
 
-        when (cur_direction) {
-            1 -> cur_player_pos.x--
-            2 -> cur_player_pos.x++
-            1 -> cur_player_pos.y--
-            1 -> cur_player_pos.y++
-        }
+        cur_player_pos.x = x.toInt()
+        cur_player_pos.y= y.toInt()
 
         field[cur_player_pos.x, cur_player_pos.y].value = IntToCell(center.toInt())
         field[cur_player_pos.x - 1, cur_player_pos.y].value = IntToCell(left.toInt())
@@ -266,13 +282,21 @@ class GameEngine : EventListener {
         field[cur_player_pos.x, cur_player_pos.y + 1].shadow = 0
         field[cur_player_pos.x, cur_player_pos.y - 1].shadow = 0
 
-        field.ping()
+
 
         var k = 0
-        for (i in 6 until msg.size step 2) {
+        for (i in 9 until msg.size step 2) {
             field.players_position[k].p.x = msg[i].toInt()
-            field.players_position[k].p.x = msg[i + 1].toInt()
+            field.players_position[k].p.y = msg[i + 1].toInt()
             k++
+        }
+        field.ping()
+
+        cur_turn = turn.toInt()+1
+
+        if (cur_target_point != cur_player_pos)
+        {
+            move_mouse_to(cur_target_point.x,cur_target_point.y)
         }
     }
 
