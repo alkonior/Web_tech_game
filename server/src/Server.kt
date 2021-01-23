@@ -85,6 +85,7 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         val code: Int
         try {
             code = msg[0].toInt()
+            println("$code from ${player.id}")
             when (code) {
                 //Запрос на создание сессии
                 110 -> {
@@ -153,7 +154,6 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         if (player.status == Player.Status.LOBBY || player.status == Player.Status.READY) {
             if (player.session.playerCount != 1) {
                 player.session.removePlayer(player)
-                announce(false, "508 ${player.session.playerCount}")
             } else {
                 server.deleteSession(player.session.id)
             }

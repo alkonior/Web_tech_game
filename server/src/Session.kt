@@ -68,6 +68,7 @@ class Session(_status: Status) {
             ready = 0
             for (x in players.values) {
                 x.status = Player.Status.valueOf(status.name)
+                x.write("508 ${playerCount}")
             }
         }
     }
