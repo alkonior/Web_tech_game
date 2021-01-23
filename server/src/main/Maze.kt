@@ -1,8 +1,12 @@
+package main
+
 import kotlin.math.abs
 import kotlin.random.Random
 
 class Maze(_seed: String) {
     var random: Random = Random(_seed.hashCode())
+    //Размеры ТОЛЬКО нечетные.
+    //Лабиринт ВСЕГДА квадратный.
     val height: Int = 31
     val width: Int = 31
 

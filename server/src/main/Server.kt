@@ -1,3 +1,5 @@
+package main
+
 import java.io.OutputStream
 import java.net.ServerSocket
 import java.net.Socket
@@ -85,7 +87,6 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         val code: Int
         try {
             code = msg[0].toInt()
-            println("$code from ${player.id}")
             when (code) {
                 //Запрос на создание сессии
                 110 -> {
@@ -151,7 +152,8 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
 
     //Функция выхода из лобби
     private fun back() {
-        if (player.status == Player.Status.LOBBY || player.status == Player.Status.READY) {
+        if (player.status == Player.Status.LOBBY || player.status == Player.Status.READY ||
+            player.session.status == Session.Status.FINISHED) {
             if (player.session.playerCount != 1) {
                 player.session.removePlayer(player)
             } else {
@@ -212,6 +214,7 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         println("${player.socket.inetAddress.hostAddress} with id ${player.id} closed the connection")
         player.session.removePlayer(player)
         if (player.session.playerCount == 0 && player.session.status != Session.Status.IDLING) {
+            server.sessions[player.session.id]!!.status = Session.Status.IDLING
             server.deleteSession(player.session.id)
         }
     }
