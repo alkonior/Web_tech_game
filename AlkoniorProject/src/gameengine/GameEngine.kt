@@ -146,12 +146,14 @@ class GameEngine : EventListener {
         }
     }
 
+    var bot_delay:Long = 100
+
     private suspend fun fix_turn_number(s: String)
     {
         cur_turn.value = s.toInt()
         if (cur_target_point != cur_player_pos)
         {
-            delay(150)
+            delay(bot_delay)
             if (!has_moved)
             {
                 move_mouse_to(cur_target_point.x,cur_target_point.y)
@@ -200,6 +202,7 @@ class GameEngine : EventListener {
 
         var move = bot.findWayTo()
         cur_direction = move.toInt()
+        field.ping()
         if (move!=SimpleBot.Dirrections.NOTHING)
             server.sendMess(move.toString()+" "+cur_turn.value)
 
@@ -301,7 +304,7 @@ class GameEngine : EventListener {
 
         if (cur_target_point != cur_player_pos)
         {
-            delay(100)
+            delay(bot_delay)
             if (!has_moved)
             {
                 move_mouse_to(cur_target_point.x,cur_target_point.y)

@@ -5,6 +5,7 @@ import field.GameField
 import java.awt.Point
 import java.util.*
 import kotlin.math.abs
+import  com.google.common.collect.TreeMultiset
 
 
 class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(field, position, target) {
@@ -21,16 +22,16 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
         dist[p.x][p.y] = dist_
     }
 
-    override var target:Point = target
-    set(value) {
-        if (target!=value)
-            theWay.clear()
-        field = value
-    }
+    override var target: Point = target
+        set(value) {
+            if (target != value)
+                theWay.clear()
+            field = value
+        }
 
-    var aStar = 500
-    var way_len = 10
-    var void_punish = 100
+    var aStar = 10
+    var way_len = 15
+    var void_punish = 20
     var color_punish = 100000
 
     private var moveDirections = listOf(
@@ -48,37 +49,34 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
         return abs(abs(p.x - target.x) + abs(p.y - target.y))
     }
 
-    fun setColor(x:Int,y:Int,color:Int)
-    {
+    fun setColor(x: Int, y: Int, color: Int) {
         colors[x][y] = color
-        if (field[x+1,y].value==CellValue.VOID)
-            if (colors[x+1][y]!= color)
-            {
-                setColor(x+1,y,color)
+       // field[x,y].text = color.toString()
+        if (field[x + 1, y].value == CellValue.VOID)
+            if (colors[x + 1][y] != color) {
+                setColor(x + 1, y, color)
             }
-        if (field[x-1,y].value==CellValue.VOID)
-            if (colors[x-1][y]!= color)
-            {
-                setColor(x-1,y,color)
+        if (field[x - 1, y].value == CellValue.VOID)
+            if (colors[x - 1][y] != color) {
+                setColor(x - 1, y, color)
             }
-        if (field[x,y+1].value==CellValue.VOID)
-            if (colors[x][y+1]!= color)
-            {
-                setColor(x,y+1,color)
+        if (field[x, y + 1].value == CellValue.VOID)
+            if (colors[x][y + 1] != color) {
+                setColor(x, y + 1, color)
             }
-        if (field[x,y-1].value==CellValue.VOID)
-            if (colors[x][y-1]!= color)
-            {
-                setColor(x,y-1,color)
+        if (field[x, y - 1].value == CellValue.VOID)
+            if (colors[x][y - 1] != color) {
+                setColor(x, y - 1, color)
             }
     }
 
 
-    fun colorise()
-    {
+    fun colorise() {
         for (p in 1..30)
-            for (q in 1..30)
+            for (q in 1..30){
                 colors[p][q] = 0
+               // field[p,q].text = 0.toString()
+            }
         var color = 1
         for (p in 1..30)
             for (q in 1..30) {
@@ -92,8 +90,8 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
     }
 
     override fun findWayTo(): Dirrections {
-        if (position == target)
-        {
+        if (position == target) {
+            theWay.clear()
             return Dirrections.NOTHING
         }
 
@@ -101,13 +99,13 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
         if (position !in theWay) {
             for (p in 1..30)
                 for (q in 1..30)
-                    setDist(Point(p,q),10000000)
+                    setDist(Point(p, q), 10000000)
             for (p in 1..30)
                 for (q in 1..30)
                     checked[p][q] = false
             colorise()
 
-            var checkPoints: TreeSet<PointDist> = TreeSet<PointDist> { o1, o2 -> o1.d - o2.d }
+            var checkPoints: TreeMultiset<PointDist> = TreeMultiset.create { o1, o2 -> o1.d - o2.d }
 
 
             setDist(position, 0)
@@ -117,59 +115,87 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
             point_queue.add(PointDist(position, 0, Point(0, 0)))
 
 
-
             while (point_queue.size > 0) {
-                var addPoints = mutableListOf<PointDist>()
-                var min_dist = 100000
-                for (pd in point_queue) {
-                    checked[pd.p.x][pd.p.y] = true
+                var addPoints: TreeMultiset<PointDist> = TreeMultiset.create { o1, o2 -> o1.d - o2.d }
+                var pd = point_queue.first()
+                if (checkPoints.size>0)
+                    if (pd.d>checkPoints.first().d) {
+                        point_queue.remove(pd)
+                        continue
+                    }
+                run {
                     for (dir in moveDirections) {
-                        when (field[pd.p + dir].value) {
-                            CellValue.FLOOR -> {
-                                var distance =  pd.d + way_len
-                                if ((dist[(pd.p + dir).x][(pd.p + dir).y] > distance + aStar*aStarAdition(pd.p + dir) ) and (! checked[(pd.p + dir).x][(pd.p + dir).y])) {
-                                    setDist(pd.p + dir, distance + aStar*aStarAdition(pd.p + dir));
-                                    addPoints.add(PointDist(pd.p + dir, distance, dir, pd))
-                                    min_dist = distance
-                                    if ((pd.p + dir) == target)
-                                    {
-                                        checkPoints.add(PointDist(pd.p + dir, - 10000, dir, pd))
+                        if (!checked[(pd.p + dir).x][(pd.p + dir).y])
+                            when (field[pd.p + dir].value) {
+                                CellValue.FLOOR -> {
+                                    var distance = pd.d + way_len
+                                    if (dist[(pd.p + dir).x][(pd.p + dir).y] > distance + aStar * aStarAdition(pd.p + dir)) {
+                                        setDist(pd.p + dir, distance + aStar * aStarAdition(pd.p + dir));
+                                        var ii = 0
+                                        while (addPoints.contains(PointDist(pd.p + dir, distance + ii+ aStar * aStarAdition(pd.p + dir), dir, pd))) {
+                                            ii++
+                                        }
+                                        addPoints.add(PointDist(pd.p + dir, distance + ii + aStar * aStarAdition(pd.p + dir), dir, pd))
+                                        if ((pd.p + dir) == target) {
+                                            checkPoints.add(PointDist(pd.p + dir, -10000, dir, pd))
+                                            break
+                                        }
+
                                     }
+                                }
+                                CellValue.VOID -> {
+                                    var distance = pd.d + void_punish * way_len + way_len
+                                    if (colors[target.x][target.y] != colors[(pd.p + dir).x][(pd.p + dir).y]) {
+                                        distance += color_punish * way_len
+                                    }
+                                    if (dist[(pd.p + dir).x][(pd.p + dir).y] > distance + aStar * aStarAdition(pd.p + dir)) {
+                                        setDist(pd.p + dir, distance);
 
+                                        var ii = 0
+                                        while (checkPoints.contains(
+                                                PointDist(
+                                                    pd.p + dir,
+                                                    distance + aStar * aStarAdition(pd.p + dir) + ii,
+                                                    dir,
+                                                    pd
+                                                )
+                                            )
+                                        ) {
+                                            ii++
+                                        }
+                                        checkPoints.add(
+                                            PointDist(
+                                                pd.p + dir,
+                                                distance + aStar * aStarAdition(pd.p + dir) + ii,
+                                                dir,
+                                                pd
+                                            )
+                                        )
+                                    }
+                                }
+                                else -> {
+                                    if ((pd.p + dir) == target) {
+                                        checkPoints.add(PointDist(pd.p + dir, - 10000, dir, pd))
+                                        setDist(pd.p + dir, -1000);
+                                        break
+                                    }
                                 }
                             }
-                            CellValue.VOID -> {
-                                var distance =  pd.d + void_punish*way_len + way_len
-                                if (colors[target.x][target.y]!=colors[(pd.p + dir).x][(pd.p + dir).y])
-                                {
-                                    distance+=color_punish*way_len
-                                }
-                                if ((dist[(pd.p + dir).x][(pd.p + dir).y] > distance + aStar*aStarAdition(pd.p + dir) )and (! checked[(pd.p + dir).x][(pd.p + dir).y])) {
-                                    setDist(pd.p + dir, distance);
-                                    checkPoints.add(PointDist(pd.p + dir, distance + aStar*aStarAdition(pd.p + dir) , dir, pd))
-                                    checked[(pd.p + dir).x][(pd.p + dir).y] = true
-                                }
-                            }
-                            else -> {
-                                if ((pd.p + dir) == target)
-                                {
-                                    checkPoints.add(PointDist(pd.p + dir, pd.d - 10000, dir, pd))
-                                    setDist(pd.p + dir, - 1000);
-                                    checked[(pd.p + dir).x][(pd.p + dir).y] = true
-                                }
-                            }
+
+                    }
+                }
+                checked[pd.p.x][pd.p.y] = true
+                point_queue.remove(pd)
+                if (addPoints.size > 0)
+                    if (checkPoints.size > 0) {
+                        if (addPoints.first().d < checkPoints.first().d) {
+                            point_queue.addAll(addPoints)
+                            addPoints.clear()
                         }
-                    }
-                }
-
-                point_queue.clear()
-                if (checkPoints.size > 0){
-                    if (min_dist < checkPoints.first().d) {
+                    } else {
                         point_queue.addAll(addPoints)
+                        addPoints.clear()
                     }
-                }
-                    else
-                    point_queue.addAll(addPoints)
 
             }
 
@@ -180,13 +206,12 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
                 t = t.lastpd
                 p = t.p
             }
-            theWay.add(Point(position.x,position.y))
+            theWay.add(Point(position.x, position.y))
             theWay.reverse()
             field.ping()
         }
 
-        if ((field[target].value==CellValue.WALL) and (theWay.size == 2 ))
-        {
+        if ((field[target].value == CellValue.WALL) and (theWay.size == 2)) {
             return Dirrections.NOTHING
         }
 
@@ -199,8 +224,7 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
                 break
         }
         var t = theWay[ii + 1]
-        if (theWay[theWay.size-1] == t)
-        {
+        if (theWay[theWay.size - 1] == t) {
             theWay.clear()
         }
 
@@ -215,7 +239,7 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
                 return Dirrections.RIGHT
         } else
             if (max2 > 0) {
-                 return Dirrections.UP
+                return Dirrections.UP
             } else
                 return Dirrections.DOWN
 
