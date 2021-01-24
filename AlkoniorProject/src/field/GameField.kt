@@ -82,6 +82,14 @@ class GameField(var width: Int, var height: Int) : Observable {
         field[i][j] = value;
     }
 
+    operator fun get(p:Point): CellInfo {
+        return this[p.x,p.y]
+    }
+
+    operator fun set(p:Point, value: CellInfo) {
+        this[p.x,p.y] = value;
+    }
+
     override fun addListener(p0: InvalidationListener?) {
         if (p0 != null) {
             listeners.set(p0.hashCode(), p0);

@@ -38,7 +38,7 @@ class GameEngine : EventListener {
     lateinit var main_thread: Thread;
 
     public val max_seconds = 5000
-    private val delay_seconds = 100
+    private val delay_seconds = 50
 
     private var server = Server();
     private  var bot = SimpleBot(field, Point(), Point());
@@ -91,26 +91,12 @@ class GameEngine : EventListener {
             return false
     }
 
-    suspend fun create_new_lobby() {
-        if (current_stage.value == GameStage.LobbyConnection) {
-            TODO("Server.send(\"что-то то там\")")
-        }
-    }
-
-    suspend fun connect_this_lobby(string: String) {
-        if (current_stage.value == GameStage.LobbyConnection) {
-            TODO("Server.send(\"что-то то там\")")
-        }
-    }
-
 
     fun update_timer() {
         if (current_stage.value == GameStage.Game) {
             cur_second += delay_seconds
         }
     }
-
-
 
 
     fun server_comand_reeder() = runBlocking {
@@ -152,10 +138,23 @@ class GameEngine : EventListener {
             //Сессия полная
             "507" -> throw Throwable("Session is full.")
             "508" -> playersReady("0", msg[1])
-            "700" -> cur_turn.value = msg[1].toInt()
+            "700" -> fix_turn_number(msg[1])
             "510" -> start_game(msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], msg[7], msg[8], msg[9], msg[10])
             "777" -> make_turn(msg[1], msg[2], msg[3], msg[4], msg[5], msg[6],msg[7],msg[8],msg)
             else -> {
+            }
+        }
+    }
+
+    private suspend fun fix_turn_number(s: String)
+    {
+        cur_turn.value = s.toInt()
+        if (cur_target_point != cur_player_pos)
+        {
+            delay(150)
+            if (!has_moved)
+            {
+                move_mouse_to(cur_target_point.x,cur_target_point.y)
             }
         }
     }
@@ -191,14 +190,18 @@ class GameEngine : EventListener {
 
     var cur_target_point = Point(0,0)
 
+    var has_moved = false;
+
     fun move_mouse_to(x: Int, y: Int) {
+        has_moved = true
         cur_target_point =  Point(x,y)
         bot.target =  Point(x,y)
+        bot.position = cur_player_pos
 
         var move = bot.findWayTo()
         cur_direction = move.toInt()
-        
-        server.sendMess(move.toString()+" "+cur_turn.value)
+        if (move!=SimpleBot.Dirrections.NOTHING)
+            server.sendMess(move.toString()+" "+cur_turn.value)
 
     }
 
@@ -242,14 +245,14 @@ class GameEngine : EventListener {
 
         field[15,15].value = CellValue.EXIT
 
-        bot = SimpleBot(field, cur_player_pos, cur_target_point);
+        bot = MouseBot(field, cur_player_pos, cur_target_point);
 
 
         current_stage.value = GameStage.Game
     }
 
 
-    private fun make_turn(
+    private suspend fun make_turn (
         turn : String,
         x: String,
         y: String,
@@ -282,7 +285,7 @@ class GameEngine : EventListener {
         field[cur_player_pos.x, cur_player_pos.y + 1].shadow = 0
         field[cur_player_pos.x, cur_player_pos.y - 1].shadow = 0
 
-
+        has_moved = false
 
         var k = 0
         for (i in 9 until msg.size step 2) {
@@ -294,11 +297,17 @@ class GameEngine : EventListener {
 
         cur_turn.value = turn.toInt()+1
 
+        cur_second.value = 0;
+
         if (cur_target_point != cur_player_pos)
         {
-            move_mouse_to(cur_target_point.x,cur_target_point.y)
+            delay(100)
+            if (!has_moved)
+            {
+                move_mouse_to(cur_target_point.x,cur_target_point.y)
+            }
         }
-        cur_second.value = 0;
+
     }
 
     fun createLobby() {

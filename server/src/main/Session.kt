@@ -125,7 +125,7 @@ class Session(_status: Status) {
                         if (!calculating.get()) {
                             doTurn(); running.set(false); calculating.set(false)
                         }
-                    }, 5500)
+                    }, 550000000000000)
                 }
                 ready = 0
                 for (x in players.values) {

@@ -153,6 +153,7 @@ class Game : View("Mice in lab.") {
                 label.maxWidth = cellSize * 1.0;
                 label.setStyle("-fx-border-color: rgba(0, 0, 0, 0.0);");
                 label.alignment = (Pos.CENTER);
+                label.text = "$i $j"
 
                 fieldview.add(image1, i, j)
                 fieldview.add(panel, i, j)
@@ -179,8 +180,15 @@ class Game : View("Mice in lab.") {
             }
         }
         fieldcontaner.onMouseReleased = EventHandler<MouseEvent> { event ->
-            run {
+            Platform.runLater {
                 last_point = Point2D(event.getSceneX(), event.getSceneY());
+                if (!draging) {
+                    clicked_point_x = (((event.getSceneX() - field_margine_x).toInt()) / cellSize)
+                    clicked_point_y = (((event.getSceneY() - field_margine_y - 40).toInt()) / cellSize)
+                    mouse_clicked(clicked_point_x, clicked_point_y);
+                    field_.engine.move_mouse_to(clicked_point_x, clicked_point_y)
+                    upade_view(field)
+                }
                 draging = false;
             }
         }
@@ -218,11 +226,7 @@ class Game : View("Mice in lab.") {
                             "current_pos_x = ${current_pos_x}, current_pos_y = ${current_pos_y},"
                 );
                 */
-                clicked_point_x = (((event.getSceneX() - field_margine_x).toInt()) / cellSize)
-                clicked_point_y = (((event.getSceneY() - field_margine_y-40).toInt()) / cellSize)
-                mouse_clicked(clicked_point_x, clicked_point_y);
-                field_.engine.move_mouse_to(clicked_point_x, clicked_point_y)
-                upade_view(field)
+
             }
         }
         AnchorPane.setLeftAnchor(fieldview, field_margine_x);
@@ -326,14 +330,13 @@ class Game : View("Mice in lab.") {
                 if (image2.image != i2) {
                     image2.image = i2
                 }
-                if (label.text != cell.text) {
-                    label.text = "$i and $j"
-                }
+
                 image3.isVisible=false
                 if ((i==field_.engine.cur_target_point.x) and (j==field_.engine.cur_target_point.y))
                 {
                     image3.isVisible=true
                 }
+                label.text = cell.text
             }
         }
 

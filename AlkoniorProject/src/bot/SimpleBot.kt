@@ -4,9 +4,9 @@ import field.GameField
 import java.awt.Point
 import kotlin.math.abs
 
-class SimpleBot(val field:GameField,
-                var position:Point,
-                var target:Point) {
+open class SimpleBot(val field:GameField,
+                     var position:Point,
+                     open var target:Point) {
 
         enum class Dirrections{
             LEFT,
@@ -41,7 +41,7 @@ class SimpleBot(val field:GameField,
         }
 
 
-        fun findWayTo(): Dirrections
+        open fun findWayTo(): Dirrections
         {
             var max1 = position.x-target.x
             var max2 = position.y-target.y
