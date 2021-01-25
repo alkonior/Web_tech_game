@@ -4,12 +4,15 @@ import bot.MouseBot
 import bot.SimpleBot
 import field.*
 import javafx.beans.InvalidationListener
+import javafx.beans.WeakInvalidationListener
+import javafx.beans.WeakListener
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
 import server.Server
 import tornadofx.plusAssign
 import java.util.*
 import kotlinx.coroutines.*
+import tornadofx.cleanBind
 import java.awt.Point
 import kotlin.concurrent.thread
 
@@ -22,13 +25,16 @@ class GameEngine : EventListener {
         Die
     }
 
+
+
+    var still_reading_server = false
     var sp_mod: Boolean= false
 
     public var current_stage = SimpleObjectProperty<GameStage>(GameStage.ServerConnection);
 
     public var field = GameField();
     public var cur_second = SimpleIntegerProperty(0);
-    private val timer = Timer("game timer", false)
+    private var timer = Timer("game timer", false)
     private val timerTask = object : TimerTask() {
         override fun run() {
             update_timer()
@@ -40,7 +46,7 @@ class GameEngine : EventListener {
     lateinit var main_thread: Thread;
 
     public val max_seconds = 5000
-    private val delay_seconds = 50
+    private val delay_seconds = 300
 
     private var server = Server();
     private  var bot = SimpleBot(field, Point(), Point());
@@ -52,17 +58,18 @@ class GameEngine : EventListener {
 
 
     init {
-        current_stage.addListener(InvalidationListener {
+        current_stage.addListener(WeakInvalidationListener {
             lastError.value = null
         })
-        current_stage.addListener(InvalidationListener {
+
+        current_stage.addListener(WeakInvalidationListener {
             if (current_stage.value == GameStage.Die) {
                 try {
-                    if (this::main_thread.isInitialized) {
-                        main_thread.interrupt()
-                        timer.cancel()
-                    }
+                    still_reading_server = false
                     server.close()
+                    field.clear()
+                    main_thread.interrupt()
+                    timer.cancel()
                 } catch (ex: Throwable) {
                 }
             }
@@ -78,7 +85,7 @@ class GameEngine : EventListener {
                     main_thread.join()
                 }
                 main_thread = thread {
-
+                    still_reading_server = true
                     try {
                         server_comand_reeder()
                     } catch (ex: Throwable) {
@@ -104,7 +111,7 @@ class GameEngine : EventListener {
     fun server_comand_reeder() = runBlocking {
         coroutineScope {
             try {
-                while (current_stage.value != GameStage.ServerConnection) {
+                while (still_reading_server) {
                     try {
                         var mes = server.getMess()
                         launch(Dispatchers.Default) {
@@ -185,6 +192,7 @@ class GameEngine : EventListener {
             playersInLobby.value = 1
             playersReadyLobby.value = 0
             current_stage.value = GameStage.Lobby
+            timer = Timer()
         }
     }
 

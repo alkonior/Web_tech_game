@@ -18,7 +18,6 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
         MutableList(field.width) { MutableList(field.height) { 0 } };
 
     private fun setDist(p: Point, dist_: Int) {
-        field[p].text = dist_.toString()
         dist[p.x][p.y] = dist_
     }
 
@@ -29,10 +28,10 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
             field = value
         }
 
-    var aStar = 10
+    var aStar = 5
     var way_len = 15
     var void_punish = 20
-    var color_punish = 100000
+    var color_punish = 10000
 
     private var moveDirections = listOf(
         Point(1, 0),
@@ -51,7 +50,7 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
 
     fun setColor(x: Int, y: Int, color: Int) {
         colors[x][y] = color
-       // field[x,y].text = color.toString()
+        // field[x,y].text = color.toString()
         if (field[x + 1, y].value == CellValue.VOID)
             if (colors[x + 1][y] != color) {
                 setColor(x + 1, y, color)
@@ -73,9 +72,9 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
 
     fun colorise() {
         for (p in 1..30)
-            for (q in 1..30){
+            for (q in 1..30) {
                 colors[p][q] = 0
-               // field[p,q].text = 0.toString()
+                // field[p,q].text = 0.toString()
             }
         var color = 1
         for (p in 1..30)
@@ -118,8 +117,8 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
             while (point_queue.size > 0) {
                 var addPoints: TreeMultiset<PointDist> = TreeMultiset.create { o1, o2 -> o1.d - o2.d }
                 var pd = point_queue.first()
-                if (checkPoints.size>0)
-                    if (pd.d>checkPoints.first().d) {
+                if (checkPoints.size > 0)
+                    if (pd.d > checkPoints.first().d) {
                         point_queue.remove(pd)
                         continue
                     }
@@ -129,13 +128,24 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
                             when (field[pd.p + dir].value) {
                                 CellValue.FLOOR -> {
                                     var distance = pd.d + way_len
-                                    if (dist[(pd.p + dir).x][(pd.p + dir).y] > distance + aStar * aStarAdition(pd.p + dir)) {
-                                        setDist(pd.p + dir, distance + aStar * aStarAdition(pd.p + dir));
+                                    if (dist[(pd.p + dir).x][(pd.p + dir).y] > distance + aStar * way_len * aStarAdition(
+                                            pd.p + dir
+                                        )
+                                    ) {
+                                        setDist(pd.p + dir, distance + aStar * way_len * aStarAdition(pd.p + dir));
                                         var ii = 0
-                                        while (addPoints.contains(PointDist(pd.p + dir, distance + ii+ aStar * aStarAdition(pd.p + dir), dir, pd))) {
+                                        while (addPoints.contains(
+                                                PointDist(
+                                                    pd.p + dir,
+                                                    distance + ii,
+                                                    dir,
+                                                    pd
+                                                )
+                                            )
+                                        ) {
                                             ii++
                                         }
-                                        addPoints.add(PointDist(pd.p + dir, distance + ii + aStar * aStarAdition(pd.p + dir), dir, pd))
+                                        addPoints.add(PointDist(pd.p + dir, distance + ii, dir, pd))
                                         if ((pd.p + dir) == target) {
                                             checkPoints.add(PointDist(pd.p + dir, -10000, dir, pd))
                                             break
@@ -148,14 +158,17 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
                                     if (colors[target.x][target.y] != colors[(pd.p + dir).x][(pd.p + dir).y]) {
                                         distance += color_punish * way_len
                                     }
-                                    if (dist[(pd.p + dir).x][(pd.p + dir).y] > distance + aStar * aStarAdition(pd.p + dir)) {
+                                    if (dist[(pd.p + dir).x][(pd.p + dir).y] > distance + aStar * way_len * aStarAdition(
+                                            pd.p + dir
+                                        )
+                                    ) {
                                         setDist(pd.p + dir, distance);
 
                                         var ii = 0
                                         while (checkPoints.contains(
                                                 PointDist(
                                                     pd.p + dir,
-                                                    distance + aStar * aStarAdition(pd.p + dir) + ii,
+                                                    distance + aStar * way_len * aStarAdition(pd.p + dir) + ii,
                                                     dir,
                                                     pd
                                                 )
@@ -166,7 +179,7 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
                                         checkPoints.add(
                                             PointDist(
                                                 pd.p + dir,
-                                                distance + aStar * aStarAdition(pd.p + dir) + ii,
+                                                distance + aStar * way_len * aStarAdition(pd.p + dir) + ii,
                                                 dir,
                                                 pd
                                             )
@@ -175,7 +188,7 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
                                 }
                                 else -> {
                                     if ((pd.p + dir) == target) {
-                                        checkPoints.add(PointDist(pd.p + dir, - 10000, dir, pd))
+                                        checkPoints.add(PointDist(pd.p + dir, -10000, dir, pd))
                                         setDist(pd.p + dir, -1000);
                                         break
                                     }
@@ -184,19 +197,33 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
 
                     }
                 }
+
                 checked[pd.p.x][pd.p.y] = true
                 point_queue.remove(pd)
-                if (addPoints.size > 0)
+                if (addPoints.size > 0) {
                     if (checkPoints.size > 0) {
-                        if (addPoints.first().d < checkPoints.first().d) {
-                            point_queue.addAll(addPoints)
-                            addPoints.clear()
+                        for (p in addPoints) {
+                            if (p.d < checkPoints.first().d) {
+                                var ii = 0
+                                while (point_queue.contains(p)) {
+                                    ii++
+                                }
+                                pd.d += ii
+                                point_queue.add(p)
+                            }
                         }
                     } else {
-                        point_queue.addAll(addPoints)
-                        addPoints.clear()
+                        for (p in addPoints) {
+                            var ii = 0
+                            while (point_queue.contains(p)) {
+                                ii++
+                            }
+                            pd.d += ii
+                            point_queue.add(p)
+                        }
                     }
-
+                }
+                addPoints.clear()
             }
 
             var t = checkPoints.first()

@@ -3,23 +3,22 @@ package application
 import gameengine.GameEngine
 import javafx.application.Platform
 import javafx.beans.InvalidationListener
+import javafx.beans.WeakInvalidationListener
 import javafx.event.EventHandler
-import javafx.scene.control.Button
 import javafx.scene.control.Label
 import javafx.scene.control.TextField
 import javafx.scene.layout.AnchorPane
 import models.GameFieldModel
-import server.Server
 import tornadofx.*
 
 class ConnectServer : View("Mice in lab.") {
     override val root: AnchorPane by fxml("/views/connect.fxml")
 
-    val Connect: Button by fxid()
 
-    val Id: TextField by fxid()
-    val Port: TextField by fxid()
-    val ErrorMessage: Label by fxid()
+
+    private val Id: TextField by fxid()
+    private val Port: TextField by fxid()
+    private val ErrorMessage: Label by fxid()
 
     init {
         currentStage?.setResizable(false)
@@ -31,11 +30,11 @@ class ConnectServer : View("Mice in lab.") {
         println("Connect")
 
 
-        var gameEngine = GameEngine();
+        val gameEngine = GameEngine();
         try {
             if (gameEngine.connect(Id.text, Port.text)) {
 
-                gameEngine.current_stage.addListener(InvalidationListener {
+                gameEngine.current_stage.addListener(WeakInvalidationListener {
                     Platform.runLater {
                         val model = GameFieldModel(gameEngine);
                         val fragmentScope = Scope()
@@ -43,21 +42,21 @@ class ConnectServer : View("Mice in lab.") {
                         when (gameEngine.current_stage.value) {
                             GameEngine.GameStage.Lobby -> currentWindow?.scene?.root?.replaceWith(
                                 find<Lobby>(fragmentScope).root,
-                                null, true, false
+                                null, sizeToScene = true, centerOnScreen = false
                             )
                             GameEngine.GameStage.LobbyConnection -> {
                                 currentWindow?.scene?.root?.replaceWith(
                                     find<LobbyConnect>(fragmentScope).root,
-                                    null, true, false
+                                    null, sizeToScene = true, centerOnScreen = false
                                 )
                             }
                             GameEngine.GameStage.Game -> currentWindow?.scene?.root?.replaceWith(
                                 find<Game>(fragmentScope).root,
-                                null, true, false
+                                null, sizeToScene = true, centerOnScreen = false
                             )
                             GameEngine.GameStage.ServerConnection -> currentWindow?.scene?.root?.replaceWith(
                                 find<ConnectServer>(fragmentScope).root,
-                                null, true, false
+                                null, sizeToScene = true, centerOnScreen = false
                             )
                             GameEngine.GameStage.Die -> {
                             }

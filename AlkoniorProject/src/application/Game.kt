@@ -6,8 +6,10 @@ import field.Mouse
 import field.MouseValue
 import javafx.application.Platform
 import javafx.beans.InvalidationListener
+import javafx.beans.WeakInvalidationListener
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
+import javafx.beans.value.WeakChangeListener
 import javafx.event.EventHandler
 import javafx.geometry.Point2D
 import javafx.geometry.Pos
@@ -81,7 +83,6 @@ class Game : View("Mice in lab.") {
     private var multyKrisaLayer = mutableListOf<MutableList<MutableList<ImageView>>>()
     private var secondLayer = mutableListOf<MutableList<ImageView>>()
     private var thirdLayer = mutableListOf<MutableList<ImageView>>()
-    private var textLayer = mutableListOf<MutableList<Label>>()
 
     init {
         /*
@@ -109,18 +110,15 @@ class Game : View("Mice in lab.") {
             multyKrisaLayer.add(mutableListOf())
             secondLayer.add(mutableListOf())
             thirdLayer.add(mutableListOf())
-            textLayer.add(mutableListOf())
             for (j in 0..(screen_height - 1)) {
 
                 firstLayer[i].add(ImageView())
                 secondLayer[i].add(ImageView())
                 thirdLayer[i].add(ImageView())
-                textLayer[i].add(Label(""))
 
                 var image1 = firstLayer[i][j]
                 var image2 = secondLayer[i][j]
                 var image3 = thirdLayer[i][j]
-                var label = textLayer[i][j]
 
                 image1.fitWidth = cellSize * 1.0;
                 image1.fitHeight = cellSize * 1.0;
@@ -149,25 +147,18 @@ class Game : View("Mice in lab.") {
                     }
                 }
 
-                label.minWidth = cellSize * 1.0;
-                label.maxWidth = cellSize * 1.0;
-                label.setStyle("-fx-border-color: rgba(0, 0, 0, 0.0);");
-                label.alignment = (Pos.CENTER);
-                label.text = "$i $j"
-
                 fieldview.add(image1, i, j)
                 fieldview.add(panel, i, j)
                 fieldview.add(image2, i, j)
                 fieldview.add(image3, i, j)
-                fieldview.add(label, i, j)
 
             }
         }
 
-        field.addListener { field ->
+        field.addListener (InvalidationListener{ field ->
             Platform.runLater(
                 Runnable { upade_view(field as GameField) })
-        }
+        })
 
 
         field_.engine.cur_turn.addListener(ChangeListener{ observableValue: ObservableValue<out Number>?, number: Number, number1: Number ->
@@ -194,8 +185,8 @@ class Game : View("Mice in lab.") {
         }
 
 
-        val stageSizeListener: ChangeListener<Number> =
-            ChangeListener<Number> { observable, oldValue, newValue ->
+        val stageSizeListener: WeakChangeListener<Number> =
+            WeakChangeListener<Number> { observable, oldValue, newValue ->
                 run {
                     max_screen_height = (((currentStage?.getHeight()?.toInt() ?: 0) + cellSize - 1) / cellSize);
                     max_screen_width = (((currentStage?.getWidth()?.toInt() ?: 0) + cellSize - 1) / cellSize);
@@ -208,7 +199,7 @@ class Game : View("Mice in lab.") {
         currentStage?.widthProperty()?.addListener(stageSizeListener)
         currentStage?.heightProperty()?.addListener(stageSizeListener)
 
-        field_.engine.cur_second.addListener(ChangeListener { observable, oldValue, newValue ->
+        field_.engine.cur_second.addListener(WeakChangeListener { observable, oldValue, newValue ->
             Platform.runLater(
                 Runnable { timer.value = (newValue.toDouble() / field_.engine.max_seconds * 100) })
         })
@@ -298,7 +289,6 @@ class Game : View("Mice in lab.") {
                 val image1 = firstLayer[i][j]
                 val image2 = secondLayer[i][j]
                 val image3 = thirdLayer[i][j]
-                val label = textLayer[i][j]
 
                 var mimages = multyKrisaLayer[i][j]
 
@@ -336,7 +326,6 @@ class Game : View("Mice in lab.") {
                 {
                     image3.isVisible=true
                 }
-                label.text = cell.text
             }
         }
 

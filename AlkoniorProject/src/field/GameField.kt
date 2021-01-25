@@ -35,10 +35,7 @@ class GameField(var width: Int, var height: Int) : Observable {
 
 
 
-    public class CellInfo(var value: CellValue, var shadow: Int, var text:String) {
-        constructor(value: CellValue,  shadow: Int):this(value,shadow,""){
-
-        }
+    public class CellInfo(var value: CellValue, var shadow: Int) {
     }
 
     private val listeners = mutableMapOf<Int, InvalidationListener>();
@@ -109,6 +106,13 @@ class GameField(var width: Int, var height: Int) : Observable {
         listeners.forEach {listener ->
             listener.value.invalidated(this);
         }
+    }
+
+    fun clear()
+    {
+        this.players_position.clear()
+        this.field.clear()
+        this.listeners.clear()
     }
 
 }
