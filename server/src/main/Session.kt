@@ -61,6 +61,10 @@ class Session(_status: Status) {
         }
         //Установка выхода
         maze.maze[maze.width/2][maze.height/2] = 2
+        maze.maze[maze.width/2 - 1][maze.height/2] = 0
+        maze.maze[maze.width/2][maze.height/2 + 1] = 0
+        maze.maze[maze.width/2][maze.height/2 - 1] = 0
+        maze.maze[maze.width/2 + 1][maze.height/2] = 0
         return maze
     }
 
@@ -204,9 +208,9 @@ class Session(_status: Status) {
             )
             for (y in players.values) {
                 if (Point(y.pos[0], y.pos[1]) in positions) {
-                    msg += " ${y.pos[0]} ${y.pos[1]}"
+                    msg += " ${y.color} ${y.pos[0]} ${y.pos[1]}"
                 } else {
-                    msg += " 0 0"
+                    msg += " ${y.color} 0 0"
                 }
             }
             x.write(msg)

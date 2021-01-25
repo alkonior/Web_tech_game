@@ -124,12 +124,17 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
     private fun toLobby(_msg: String) {
         //Нельзя попасть в лобби не из стартового меню
         if (player.status != Player.Status.IDLING) {
+            println(player.status)
             player.write("666")
         } else {
             if (server.sessions.containsKey(_msg.toInt())) {
-                val code: String = server.sessions[_msg.toInt()]!!.addPlayer(player)
-                val responce = "${code} ${player.session.ready} ${player.session.playerCount}"
-                announce(true, responce)
+                if (server.sessions[_msg.toInt()]!!.status == Session.Status.LOBBY) {
+                    val code: String = server.sessions[_msg.toInt()]!!.addPlayer(player)
+                    val responce = "${code} ${player.session.ready} ${player.session.playerCount}"
+                    announce(true, responce)
+                } else {
+                    player.write("506")
+                }
             } else {
                 //Лобби не найдено
                 player.write("506")
