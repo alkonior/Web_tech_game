@@ -219,7 +219,7 @@ class Session(_status: Status) {
         if(!spectators.isEmpty()){
             var msg = "770"
             for(x in players.values){
-                msg += " ${x.pos[0]} ${x.pos[1]}"
+                msg += " ${x.color} ${x.pos[0]} ${x.pos[1]}"
             }
             for(x in spectators.values){
                 x.write(msg)
