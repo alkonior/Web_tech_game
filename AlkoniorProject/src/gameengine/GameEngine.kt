@@ -46,7 +46,7 @@ class GameEngine : EventListener {
     lateinit var main_thread: Thread;
 
     public val max_seconds = 5000
-    private val delay_seconds = 300
+    private val delay_seconds = 50
 
     private var server = Server();
     private  var bot = SimpleBot(field, Point(), Point());
@@ -58,11 +58,11 @@ class GameEngine : EventListener {
 
 
     init {
-        current_stage.addListener(WeakInvalidationListener {
+        current_stage.addListener(InvalidationListener {
             lastError.value = null
         })
 
-        current_stage.addListener(WeakInvalidationListener {
+        current_stage.addListener(InvalidationListener {
             if (current_stage.value == GameStage.Die) {
                 try {
                     still_reading_server = false
@@ -155,7 +155,7 @@ class GameEngine : EventListener {
         }
     }
 
-    var bot_delay:Long = 100
+    var bot_delay:Long = 500
 
     private suspend fun fix_turn_number(s: String)
     {

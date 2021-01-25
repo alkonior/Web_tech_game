@@ -34,6 +34,7 @@ class Game : View("Mice in lab.") {
     val SessionId: Label by fxid()
     val TurnNumber: Label by fxid()
     val timer: Slider by fxid()
+    val TimerLabel : Label by fxid()
 
     private var screen_width: Int = 0
     private var screen_height: Int = 0
@@ -201,29 +202,38 @@ class Game : View("Mice in lab.") {
 
         field_.engine.cur_second.addListener(WeakChangeListener { observable, oldValue, newValue ->
             Platform.runLater(
-                Runnable { timer.value = (newValue.toDouble() / field_.engine.max_seconds * 100) })
+                Runnable {
+                    timer.value = (newValue.toDouble() / field_.engine.max_seconds * 100)
+                    var right = "${1000-(newValue.toInt())%1000}"
+                    var left = (5000-newValue.toInt())/1000
+                    if (left<0)
+                    {
+                        left=0
+                        right = "000"
+                    }
+                    while (right.length<3)
+                    {
+                        right ="0"+right
+                    }
+                    TimerLabel.text = "${left}:${right}"
+                })
         })
 
         currentStage?.setResizable(true)
         upade_view(field)
-        fieldcontaner.onMouseClicked = EventHandler<MouseEvent> { event ->
-            run {
-                val point = Point2D(event.getSceneX(), event.getSceneY())
-               /*
-                println(
-                    "x = ${(((event.getSceneX() - field_margine_x).toInt()) / cellSize) + current_pos_x};" +
-                            " y = ${(((event.getSceneY() - field_margine_y).toInt()) / cellSize) + current_pos_y}\n" +
-                            "field_margine_x = ${field_margine_x}, field_margine_y = ${field_margine_y}\n" +
-                            "current_pos_x = ${current_pos_x}, current_pos_y = ${current_pos_y},"
-                );
-                */
 
-            }
-        }
+        field_margine_y += (field_.engine.cur_player_pos.y+1)*cellSize
+        field_margine_x += (field_.engine.cur_player_pos.x+1)*cellSize
+
+
+        currentWindow?.width = 1040.0
+        currentWindow?.height = 940.0
+
         AnchorPane.setLeftAnchor(fieldview, field_margine_x);
         AnchorPane.setTopAnchor(fieldview, field_margine_y);
 
         SessionId.text = field_.engine.sessionId
+
     }
 
     var draging = false;

@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Slider?>
-<?import javafx.scene.effect.ImageInput?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -21,14 +19,29 @@
          <children>
             <HBox alignment="CENTER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                <children>
-                  <Slider fx:id="timer" blockIncrement="0.0" disable="true" majorTickUnit="100.0" prefHeight="14.0" prefWidth="279.0">
-                  </Slider>
-                  <Label fx:id="SessionId" alignment="CENTER" prefHeight="32.0" prefWidth="179.0" text="Label">
+                  <Label fx:id="TimerLabel" alignment="CENTER" prefHeight="32.0" prefWidth="133.0" text="0 : 0">
                      <font>
                         <Font name="System Bold" size="22.0" />
                      </font>
                   </Label>
-                  <Label fx:id="TurnNumber" alignment="CENTER" prefHeight="32.0" prefWidth="179.0" text="Label">
+                  <Slider fx:id="timer" blockIncrement="0.0" disable="true" majorTickUnit="100.0" prefHeight="14.0" prefWidth="193.0">
+                  </Slider>
+                  <Label alignment="CENTER" prefHeight="32.0" prefWidth="139.0" text="Session Id:">
+                     <font>
+                        <Font name="System Bold" size="17.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="SessionId" alignment="CENTER" prefHeight="32.0" prefWidth="179.0">
+                     <font>
+                        <Font name="System Bold" size="22.0" />
+                     </font>
+                  </Label>
+                  <Label alignment="CENTER" prefHeight="32.0" prefWidth="88.0" text="Ход:">
+                     <font>
+                        <Font name="System Bold" size="17.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="TurnNumber" alignment="CENTER" prefHeight="32.0" prefWidth="179.0">
                      <font>
                         <Font name="System Bold" size="22.0" />
                      </font>
