@@ -31,7 +31,7 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
     var aStar = 5
     var way_len = 15
     var void_punish = 10
-    var color_punish = 20
+    var color_punish = 20000
 
     private var moveDirections = listOf(
         Point(1, 0),

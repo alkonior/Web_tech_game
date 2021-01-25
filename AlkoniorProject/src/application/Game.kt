@@ -180,8 +180,9 @@ class Game : View("Mice in lab.") {
                 if (event.button == MouseButton.PRIMARY) {
                     clicked_point_x = (((event.getSceneX() - field_margine_x).toInt()) / cellSize)
                     clicked_point_y = (((event.getSceneY() - field_margine_y - 40).toInt()) / cellSize)
-                    mouse_clicked(clicked_point_x, clicked_point_y);
-                    field_.engine.move_mouse_to(clicked_point_x, clicked_point_y)
+                    if((clicked_point_x>0) and (clicked_point_x<field.width))
+                        if((clicked_point_y>0) and (clicked_point_y<field.height))
+                            field_.engine.move_mouse_to(clicked_point_x, clicked_point_y)
                     upade_view(field)
                 }
                 draging = false;
@@ -225,8 +226,8 @@ class Game : View("Mice in lab.") {
         currentStage?.setResizable(true)
         upade_view(field)
 
-        field_margine_y += (field_.engine.cur_player_pos.y+1)*cellSize
-        field_margine_x += (field_.engine.cur_player_pos.x+1)*cellSize
+        fixmagrine((field_.engine.cur_player_pos.y+1)*cellSize*1.0,
+            ( field_.engine.cur_player_pos.x+1)*cellSize*1.0)
 
 
         currentWindow?.width = 1040.0
@@ -385,10 +386,6 @@ class Game : View("Mice in lab.") {
             MouseValue.YELLOW ->   playersimgs[3]
             else -> nothingimg
         }
-    }
-
-    fun mouse_clicked(x: Int, y: Int) {
-
     }
 
 }

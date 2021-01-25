@@ -15,6 +15,7 @@ import tornadofx.cleanBind
 import java.awt.Point
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
+import kotlin.system.exitProcess
 
 class GameEngine : EventListener {
     public enum class GameStage {
@@ -157,25 +158,18 @@ class GameEngine : EventListener {
                             try {
                                 command(mes)
                             } catch (ex: Throwable) {
-                                println(1)
-                                println(ex.message)
                                 lastError.value = ex
                             }
                         }
                     } catch (ex: NoSuchElementException) {
                         server.close()
                         still_reading_server.set(false)
-                        current_stage.value = GameStage.ServerConnection
-                        lastError.value = Throwable("Lost connection with server.")
+                        current_stage.value = GameStage.Die
+                        exitProcess(0)
                     }
                     catch (ex: Throwable) {
-                        if (!server.isOk())
-                        {
-                            server.close()
-                            still_reading_server.set(false)
-                            current_stage.value = GameStage.ServerConnection
-                            lastError.value = Throwable("Lost connection with server.")
-                        }
+                        lastError.value = Throwable(ex.message)
+
                     }
                 }
             } catch (ex: Throwable) {
@@ -251,7 +245,7 @@ class GameEngine : EventListener {
 
 
     private suspend fun playersReady(s1: String, s2: String) {
-        if (current_stage.value == GameStage.Game) {
+        if (current_stage.value == GameStage.Lobby) {
             playersInLobby.value = s2.toInt()
             playersReadyLobby.value = s1.toInt()
         }
@@ -341,7 +335,10 @@ class GameEngine : EventListener {
 
         }
         current_stage.value = GameStage.Game
-        launch(coroutineContext) { make_turn(
+
+        launch(coroutineContext) {
+            delay(50)
+            make_turn(
             "-1",
             x,
             y,
