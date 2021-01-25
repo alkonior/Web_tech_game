@@ -5,8 +5,6 @@ import bot.SimpleBot
 import field.*
 import javafx.application.Platform
 import javafx.beans.InvalidationListener
-import javafx.beans.WeakInvalidationListener
-import javafx.beans.WeakListener
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleObjectProperty
 import server.Server
@@ -55,6 +53,8 @@ class GameEngine : EventListener {
     private var bot = SimpleBot(field, Point(), Point());
 
     public var sessionId = "";
+    public var serverIp = ""
+    public var serverPort = "2020"
 
     public var playersInLobby = SimpleIntegerProperty(0)
     public var playersReadyLobby = SimpleIntegerProperty(0)
@@ -115,6 +115,8 @@ class GameEngine : EventListener {
     fun connect(ip: String, port: String): Boolean {
         if (current_stage.value == GameStage.ServerConnection) {
 
+            serverIp = ip
+            serverPort = port
             if (server.connect(ip, port.toInt())) {
                 current_stage.value = GameStage.LobbyConnection
 
@@ -155,14 +157,30 @@ class GameEngine : EventListener {
                             try {
                                 command(mes)
                             } catch (ex: Throwable) {
+                                println(1)
+                                println(ex.message)
                                 lastError.value = ex
                             }
                         }
-                    } catch (ex: Throwable) {
-                        lastError.value = ex
+                    } catch (ex: NoSuchElementException) {
+                        server.close()
+                        still_reading_server.set(false)
+                        current_stage.value = GameStage.ServerConnection
+                        lastError.value = Throwable("Lost connection with server.")
+                    }
+                    catch (ex: Throwable) {
+                        if (!server.isOk())
+                        {
+                            server.close()
+                            still_reading_server.set(false)
+                            current_stage.value = GameStage.ServerConnection
+                            lastError.value = Throwable("Lost connection with server.")
+                        }
                     }
                 }
             } catch (ex: Throwable) {
+                println(3)
+                println(ex.message)
                 lastError.value = ex
             }
         }
@@ -316,7 +334,7 @@ class GameEngine : EventListener {
             cur_target_point = cur_player_pos
 
 
-            field[15, 15].value = CellValue.EXIT
+            field[field.width/2, field.height/2].value = CellValue.EXIT
 
             bot = MouseBot(field, cur_player_pos, cur_target_point);
 

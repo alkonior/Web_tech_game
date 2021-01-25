@@ -30,8 +30,8 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
 
     var aStar = 5
     var way_len = 15
-    var void_punish = 20
-    var color_punish = 10000
+    var void_punish = 10
+    var color_punish = 20
 
     private var moveDirections = listOf(
         Point(1, 0),
@@ -71,14 +71,13 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
 
 
     fun colorise() {
-        for (p in 1..30)
-            for (q in 1..30) {
+        for (p in 0 until  field.width)
+            for (q in 0 until  field.height) {
                 colors[p][q] = 0
-                // field[p,q].text = 0.toString()
             }
         var color = 1
-        for (p in 1..30)
-            for (q in 1..30) {
+        for (p in 0 until  field.width)
+            for (q in 0 until  field.height) {
                 if (field[p, q].value == CellValue.VOID) {
                     if (colors[p][q] == 0) {
                         color++
@@ -96,11 +95,11 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
 
 
         if (position !in theWay) {
-            for (p in 1..30)
-                for (q in 1..30)
+            for (p in 0 until  field.width)
+                for (q in 0 until  field.height)
                     setDist(Point(p, q), 10000000)
-            for (p in 1..30)
-                for (q in 1..30)
+            for (p in 0 until  field.width)
+                for (q in 0 until  field.height)
                     checked[p][q] = false
             colorise()
 
@@ -271,7 +270,6 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
                 return Dirrections.DOWN
 
     }
-
 }
 
 

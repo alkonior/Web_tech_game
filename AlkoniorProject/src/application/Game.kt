@@ -6,12 +6,9 @@ import field.Mouse
 import field.MouseValue
 import javafx.application.Platform
 import javafx.beans.InvalidationListener
-import javafx.beans.WeakInvalidationListener
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
-import javafx.beans.value.WeakChangeListener
 import javafx.event.EventHandler
-import javafx.event.WeakEventHandler
 import javafx.geometry.Point2D
 import javafx.geometry.Pos
 import javafx.scene.control.Label
@@ -178,9 +175,9 @@ class Game : View("Mice in lab.") {
             }
         }
         fieldcontaner.onMouseReleased = EventHandler<MouseEvent> { event ->
-            Platform.runLater {
+            run {
                 last_point = Point2D(event.getSceneX(), event.getSceneY());
-                if (!draging) {
+                if (event.button == MouseButton.PRIMARY) {
                     clicked_point_x = (((event.getSceneX() - field_margine_x).toInt()) / cellSize)
                     clicked_point_y = (((event.getSceneY() - field_margine_y - 40).toInt()) / cellSize)
                     mouse_clicked(clicked_point_x, clicked_point_y);
@@ -206,7 +203,7 @@ class Game : View("Mice in lab.") {
         currentStage?.widthProperty()?.addListener(stageSizeListener)
         currentStage?.heightProperty()?.addListener(stageSizeListener)
 
-        field_.engine.cur_second.addListener(WeakChangeListener { observable, oldValue, newValue ->
+        field_.engine.cur_second.addListener(ChangeListener { observable, oldValue, newValue ->
             Platform.runLater(
                 Runnable {
                     timer.value = (newValue.toDouble() / field_.engine.max_seconds * 100)
@@ -274,7 +271,7 @@ class Game : View("Mice in lab.") {
     }
 
     fun dragNdrop(event: MouseEvent) {
-        if (event.button == MouseButton.PRIMARY) {
+        if (event.button == MouseButton.SECONDARY) {
             var current_point = Point2D(event.sceneX, event.sceneY);
 
             val deltaX: Double = event.sceneX - last_point.x

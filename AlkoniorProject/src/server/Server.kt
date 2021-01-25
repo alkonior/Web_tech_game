@@ -61,4 +61,9 @@ class Server {
     fun close() {
         _socket.close()
     }
+
+    fun isOk():Boolean
+    {
+        return _socket.isConnected
+    }
 }
