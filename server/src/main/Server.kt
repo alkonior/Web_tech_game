@@ -159,7 +159,7 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
                         }
                     }
                     for (x in player.session.players.values) {
-                        responce += " ${x.pos[0]} ${x.pos[1]}"
+                        responce += " ${x.color} ${x.pos[0]} ${x.pos[1]}"
                     }
                     player.write(responce)
                 } else {
