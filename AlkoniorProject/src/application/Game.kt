@@ -195,8 +195,6 @@ class Game : View("Mice in lab.") {
                 run {
                     max_screen_height = (((currentStage?.getHeight()?.toInt() ?: 0) + cellSize - 1) / cellSize);
                     max_screen_width = (((currentStage?.getWidth()?.toInt() ?: 0) + cellSize - 1) / cellSize);
-
-                    fixmagrine(0.0, 0.0);
                 }
             }
 
@@ -226,15 +224,16 @@ class Game : View("Mice in lab.") {
         currentStage?.setResizable(true)
         upade_view(field)
 
-        fixmagrine((field_.engine.cur_player_pos.y+1)*cellSize*1.0,
-            ( field_.engine.cur_player_pos.x+1)*cellSize*1.0)
+
+                fixmagrine(
+                    -(field_.engine.cur_player_pos.x -5) * cellSize * 1.0,
+                    -(field_.engine.cur_player_pos.y -5) * cellSize * 1.0
+                )
+
 
 
         currentWindow?.width = 1040.0
         currentWindow?.height = 940.0
-
-        AnchorPane.setLeftAnchor(fieldview, field_margine_x);
-        AnchorPane.setTopAnchor(fieldview, field_margine_y);
 
         SessionId.text = field_.engine.sessionId
 
