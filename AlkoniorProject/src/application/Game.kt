@@ -11,6 +11,7 @@ import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.beans.value.WeakChangeListener
 import javafx.event.EventHandler
+import javafx.event.WeakEventHandler
 import javafx.geometry.Point2D
 import javafx.geometry.Pos
 import javafx.scene.control.Label
@@ -85,6 +86,10 @@ class Game : View("Mice in lab.") {
     private var secondLayer = mutableListOf<MutableList<ImageView>>()
     private var thirdLayer = mutableListOf<MutableList<ImageView>>()
 
+
+    lateinit var field_listener:InvalidationListener;
+    lateinit var stageSizeListener: ChangeListener<Number>;
+
     init {
         /*
             screen_height = ((fieldview.prefHeight.toInt() + cellSize - 1) / cellSize)+2*border;
@@ -155,14 +160,15 @@ class Game : View("Mice in lab.") {
 
             }
         }
-
-        field.addListener (InvalidationListener{ field ->
+        field_listener = InvalidationListener{ field ->
             Platform.runLater(
                 Runnable { upade_view(field as GameField) })
-        })
+        }
+
+        field.addListener (field_listener)
 
 
-        field_.engine.cur_turn.addListener(WeakChangeListener{ observableValue: ObservableValue<out Number>?, number: Number, number1: Number ->
+        field_.engine.cur_turn.addListener(ChangeListener{ observableValue: ObservableValue<out Number>?, number: Number, number1: Number ->
             Platform.runLater({  TurnNumber.text = field_.engine.cur_turn.value.toString()})
         })
         fieldcontaner.onMouseDragged = EventHandler<MouseEvent> { event -> dragNdrop(event) }
@@ -186,8 +192,8 @@ class Game : View("Mice in lab.") {
         }
 
 
-        val stageSizeListener: WeakChangeListener<Number> =
-            WeakChangeListener<Number> { observable, oldValue, newValue ->
+        stageSizeListener =
+            ChangeListener<Number> { observable, oldValue, newValue ->
                 run {
                     max_screen_height = (((currentStage?.getHeight()?.toInt() ?: 0) + cellSize - 1) / cellSize);
                     max_screen_width = (((currentStage?.getWidth()?.toInt() ?: 0) + cellSize - 1) / cellSize);

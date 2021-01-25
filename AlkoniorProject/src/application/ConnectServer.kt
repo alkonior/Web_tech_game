@@ -10,6 +10,8 @@ import javafx.scene.control.TextField
 import javafx.scene.layout.AnchorPane
 import models.GameFieldModel
 import tornadofx.*
+import java.lang.Thread.sleep
+import kotlin.system.exitProcess
 
 class ConnectServer : View("Mice in lab.") {
     override val root: AnchorPane by fxml("/views/connect.fxml")
@@ -71,6 +73,7 @@ class ConnectServer : View("Mice in lab.") {
 
                 currentWindow?.onCloseRequest = EventHandler {
                     gameEngine.current_stage.value = GameEngine.GameStage.Die
+                    exitProcess(0)
                 }
 
                 val model = GameFieldModel(gameEngine);

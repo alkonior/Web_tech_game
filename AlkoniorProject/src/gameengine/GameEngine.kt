@@ -15,6 +15,7 @@ import java.util.*
 import kotlinx.coroutines.*
 import tornadofx.cleanBind
 import java.awt.Point
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
 class GameEngine : EventListener {
@@ -28,7 +29,7 @@ class GameEngine : EventListener {
     }
 
 
-    var still_reading_server = false
+    var still_reading_server = AtomicBoolean( false)
     var sp_mod: Boolean = false
 
     public var current_stage = SimpleObjectProperty<GameStage>(GameStage.ServerConnection);
@@ -58,10 +59,10 @@ class GameEngine : EventListener {
     public var playersInLobby = SimpleIntegerProperty(0)
     public var playersReadyLobby = SimpleIntegerProperty(0)
 
-    val listener:WeakInvalidationListener = WeakInvalidationListener {
+    val listener:InvalidationListener = InvalidationListener {
         if (current_stage.value == GameStage.Die) {
             try {
-                still_reading_server = false
+                still_reading_server.set( false)
             } catch (ex: Throwable) {
                 println(ex.message)
             }
@@ -92,15 +93,22 @@ class GameEngine : EventListener {
             }catch (ex: Throwable) {
                 println(ex.message)
             }
+            try
+            {
+                thread_context.close()
+            }catch (ex: Throwable) {
+                println(ex.message)
+            }
         }
+    }
+
+    var error_nullifire = InvalidationListener {
+        lastError.value = null
     }
 
     init {
         timer.schedule(timerTask, 0, delay_seconds.toLong())
-        current_stage.addListener(InvalidationListener {
-            lastError.value = null
-        })
-
+        current_stage.addListener(error_nullifire)
         current_stage.addListener(listener)
     }
 
@@ -109,11 +117,11 @@ class GameEngine : EventListener {
 
             if (server.connect(ip, port.toInt())) {
                 current_stage.value = GameStage.LobbyConnection
-                if (this::main_thread.isInitialized) {
-                    main_thread.join()
-                }
+
+                still_reading_server.set( true)
+
                 main_thread = thread {
-                    still_reading_server = true
+
                     try {
                         server_comand_reeder()
                     } catch (ex: Throwable) {
@@ -135,20 +143,24 @@ class GameEngine : EventListener {
         }
     }
 
+    var thread_context = newSingleThreadContext("ComandExecutor")
 
     fun server_comand_reeder() = runBlocking {
         coroutineScope {
             try {
-                while (still_reading_server) {
+                while (still_reading_server.get()) {
+                    try {
                         var mes = server.getMess()
-                        launch(Dispatchers.Default) {
+                        launch(thread_context) {
                             try {
                                 command(mes)
                             } catch (ex: Throwable) {
                                 lastError.value = ex
                             }
                         }
-                        delay(50)
+                    } catch (ex: Throwable) {
+                        lastError.value = ex
+                    }
                 }
             } catch (ex: Throwable) {
                 lastError.value = ex
@@ -209,6 +221,7 @@ class GameEngine : EventListener {
 
 
     private suspend fun fix_turn_number(s: String) {
+        if (current_stage.value == GameStage.Game){
         cur_turn.value = s.toInt()
         if (cur_target_point != cur_player_pos) {
             delay(bot_delay)
@@ -216,12 +229,14 @@ class GameEngine : EventListener {
                 move_mouse_to(cur_target_point.x, cur_target_point.y)
             }
         }
-    }
+    }}
 
 
     private suspend fun playersReady(s1: String, s2: String) {
-        playersInLobby.value = s2.toInt()
-        playersReadyLobby.value = s1.toInt()
+        if (current_stage.value == GameStage.Game) {
+            playersInLobby.value = s2.toInt()
+            playersReadyLobby.value = s1.toInt()
+        }
     }
 
     private suspend fun sucsessLobbyConnection(s: String, s1: String) {
@@ -253,22 +268,24 @@ class GameEngine : EventListener {
     var has_moved = false;
 
     fun move_mouse_to(x: Int, y: Int) {
-        has_moved = true
-        cur_target_point = Point(x, y)
-        bot.target = Point(x, y)
-        bot.position = cur_player_pos
+        if (current_stage.value == GameStage.Game) {
+            has_moved = true
+            cur_target_point = Point(x, y)
+            bot.target = Point(x, y)
+            bot.position = cur_player_pos
 
-        var move = bot.findWayTo()
-        cur_direction = move.toInt()
-        field.ping()
-        if (move != SimpleBot.Dirrections.NOTHING)
-            server.sendMess(move.toString() + " " + cur_turn.value)
+            var move = bot.findWayTo()
+            cur_direction = move.toInt()
+            field.ping()
+            if (move != SimpleBot.Dirrections.NOTHING)
+                server.sendMess(move.toString() + " " + cur_turn.value)
 
+        }
     }
 
     var player_id = -1
 
-    suspend fun start_game(
+    suspend fun start_game (
         color: String,
         width: String,
         height: String,
@@ -279,25 +296,34 @@ class GameEngine : EventListener {
         down: String,
         up: String,
         center: String
-    ) {
+    ) = runBlocking{
+        if (current_stage.value == GameStage.Lobby) {
+            cur_second.value = 0
 
-        cur_second.value = 0
-
-        field = GameField(width.toInt(), height.toInt())
-        for (i in 1..(playersInLobby.value)) {
-            field.players_position.add(
-                Mouse(
-                    Point(0, 0),
-                    listOf(MouseValue.RED, MouseValue.YELLOW, MouseValue.BLUE, MouseValue.GREEN)[(i - 1) % 4]
+            field = GameField(width.toInt(), height.toInt())
+            for (i in 1..(playersInLobby.value)) {
+                field.players_position.add(
+                    Mouse(
+                        Point(0, 0),
+                        listOf(MouseValue.RED, MouseValue.YELLOW, MouseValue.BLUE, MouseValue.GREEN)[(i - 1) % 4]
+                    )
                 )
-            )
-        }
+            }
 
-        player_id = color.toInt()
-        field.players_position[color.toInt() - 3].p = Point(x.toInt(), y.toInt())
-        cur_player_pos = Point(x.toInt(), y.toInt())
-        cur_target_point = cur_player_pos
-        make_turn(
+            player_id = color.toInt()
+            field.players_position[color.toInt() - 3].p = Point(x.toInt(), y.toInt())
+            cur_player_pos = Point(x.toInt(), y.toInt())
+            cur_target_point = cur_player_pos
+
+
+            field[15, 15].value = CellValue.EXIT
+
+            bot = MouseBot(field, cur_player_pos, cur_target_point);
+
+
+        }
+        current_stage.value = GameStage.Game
+        launch(coroutineContext) { make_turn(
             "-1",
             x,
             y,
@@ -307,13 +333,8 @@ class GameEngine : EventListener {
             up,
             center, listOf()
         );
+        }
 
-        field[15, 15].value = CellValue.EXIT
-
-        bot = MouseBot(field, cur_player_pos, cur_target_point);
-
-
-        current_stage.value = GameStage.Game
     }
 
 
@@ -328,49 +349,49 @@ class GameEngine : EventListener {
         center: String,
         msg: List<String>
     ) {
+        if (current_stage.value == GameStage.Game) {
+            field[cur_player_pos.x, cur_player_pos.y].shadow = 1
+            field[cur_player_pos.x + 1, cur_player_pos.y].shadow = 1
+            field[cur_player_pos.x - 1, cur_player_pos.y].shadow = 1
+            field[cur_player_pos.x, cur_player_pos.y + 1].shadow = 1
+            field[cur_player_pos.x, cur_player_pos.y - 1].shadow = 1
 
-        field[cur_player_pos.x, cur_player_pos.y].shadow = 1
-        field[cur_player_pos.x + 1, cur_player_pos.y].shadow = 1
-        field[cur_player_pos.x - 1, cur_player_pos.y].shadow = 1
-        field[cur_player_pos.x, cur_player_pos.y + 1].shadow = 1
-        field[cur_player_pos.x, cur_player_pos.y - 1].shadow = 1
+            cur_player_pos.x = x.toInt()
+            cur_player_pos.y = y.toInt()
 
-        cur_player_pos.x = x.toInt()
-        cur_player_pos.y = y.toInt()
+            field[cur_player_pos.x, cur_player_pos.y].value = IntToCell(center.toInt())
+            field[cur_player_pos.x - 1, cur_player_pos.y].value = IntToCell(left.toInt())
+            field[cur_player_pos.x + 1, cur_player_pos.y].value = IntToCell(right.toInt())
+            field[cur_player_pos.x, cur_player_pos.y - 1].value = IntToCell(up.toInt())
+            field[cur_player_pos.x, cur_player_pos.y + 1].value = IntToCell(down.toInt())
 
-        field[cur_player_pos.x, cur_player_pos.y].value = IntToCell(center.toInt())
-        field[cur_player_pos.x - 1, cur_player_pos.y].value = IntToCell(left.toInt())
-        field[cur_player_pos.x + 1, cur_player_pos.y].value = IntToCell(right.toInt())
-        field[cur_player_pos.x, cur_player_pos.y - 1].value = IntToCell(up.toInt())
-        field[cur_player_pos.x, cur_player_pos.y + 1].value = IntToCell(down.toInt())
+            field[cur_player_pos.x, cur_player_pos.y].shadow = 0
+            field[cur_player_pos.x + 1, cur_player_pos.y].shadow = 0
+            field[cur_player_pos.x - 1, cur_player_pos.y].shadow = 0
+            field[cur_player_pos.x, cur_player_pos.y + 1].shadow = 0
+            field[cur_player_pos.x, cur_player_pos.y - 1].shadow = 0
 
-        field[cur_player_pos.x, cur_player_pos.y].shadow = 0
-        field[cur_player_pos.x + 1, cur_player_pos.y].shadow = 0
-        field[cur_player_pos.x - 1, cur_player_pos.y].shadow = 0
-        field[cur_player_pos.x, cur_player_pos.y + 1].shadow = 0
-        field[cur_player_pos.x, cur_player_pos.y - 1].shadow = 0
+            has_moved = false
 
-        has_moved = false
+            var k = 0
+            for (i in 9 until msg.size step 2) {
+                field.players_position[k].p.x = msg[i].toInt()
+                field.players_position[k].p.y = msg[i + 1].toInt()
+                k++
+            }
+            field.ping()
 
-        var k = 0
-        for (i in 9 until msg.size step 2) {
-            field.players_position[k].p.x = msg[i].toInt()
-            field.players_position[k].p.y = msg[i + 1].toInt()
-            k++
-        }
-        field.ping()
+            cur_turn.value = turn.toInt() + 1
 
-        cur_turn.value = turn.toInt() + 1
+            cur_second.value = 0;
 
-        cur_second.value = 0;
-
-        if (cur_target_point != cur_player_pos) {
-            delay(bot_delay)
-            if (!has_moved) {
-                move_mouse_to(cur_target_point.x, cur_target_point.y)
+            if (cur_target_point != cur_player_pos) {
+                delay(bot_delay)
+                if (!has_moved) {
+                    move_mouse_to(cur_target_point.x, cur_target_point.y)
+                }
             }
         }
-
     }
 
     fun createLobby() {
