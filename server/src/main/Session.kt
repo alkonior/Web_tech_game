@@ -3,15 +3,17 @@ package main
 import java.awt.Point
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.timerTask
 import kotlin.random.Random
 
 class Session(_status: Status) {
     var playerCount: Int = 0
     var players: MutableMap<Int, Player> = mutableMapOf()
+    var spectators: MutableMap<Int, Player> = mutableMapOf()
     var id: Int = 0
-    private var maze: Maze = Maze("rand")
-    var turn: Int = 0
+    var maze: Maze = Maze("rand")
+    var turn: AtomicInteger = AtomicInteger(0)
     var status: Status
     var ready: Int = 0
     private val calculating: AtomicBoolean = AtomicBoolean(false)
@@ -70,8 +72,16 @@ class Session(_status: Status) {
         _player.session = this
         _player.status = Player.Status.valueOf(status.name)
         playerCount++
-        players.put(_player.id, _player)
+        players[_player.id] = _player
         return "509"
+    }
+
+    //Добавление наблюдателя в сессию
+    fun addSpectator(_player: Player): String{
+        _player.session = this
+        _player.status = Player.Status.SPECTATING
+        spectators[_player.id] = _player
+        return "511"
     }
 
     //Удаление игрока из данной сессии
@@ -85,6 +95,11 @@ class Session(_status: Status) {
                 x.write("508 ${playerCount}")
             }
         }
+    }
+
+    //Удаление наблюдателя из данной сессии
+    fun removeSpectator(_player: Player) {
+        spectators.remove(_player.id)
     }
 
     fun setupGame() {
@@ -166,6 +181,11 @@ class Session(_status: Status) {
             for (x in players.values){
                 x.write(msg)
             }
+            if(!spectators.isEmpty()){
+                for(x in spectators.values){
+                    x.write(msg)
+                }
+            }
         } else {
             newTurn()
         }
@@ -192,6 +212,15 @@ class Session(_status: Status) {
             x.write(msg)
             x.ready = false
         }
-        turn++
+        if(!spectators.isEmpty()){
+            var msg = "770"
+            for(x in players.values){
+                msg += " ${x.pos[0]} ${x.pos[1]}"
+            }
+            for(x in spectators.values){
+                x.write(msg)
+            }
+        }
+        turn.set(turn.get()+1)
     }
 }
