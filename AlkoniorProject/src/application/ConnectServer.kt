@@ -34,7 +34,7 @@ class ConnectServer : View("Mice in lab.") {
         try {
             if (gameEngine.connect(Id.text, Port.text)) {
 
-                gameEngine.current_stage.addListener(WeakInvalidationListener {
+                gameEngine.current_stage.addListener(InvalidationListener {
                     Platform.runLater {
                         val model = GameFieldModel(gameEngine);
                         val fragmentScope = Scope()
@@ -52,10 +52,14 @@ class ConnectServer : View("Mice in lab.") {
                             }
                             GameEngine.GameStage.Game -> currentWindow?.scene?.root?.replaceWith(
                                 find<Game>(fragmentScope).root,
-                                null, sizeToScene = true, centerOnScreen = false
+                                null, sizeToScene = false, centerOnScreen = false
                             )
                             GameEngine.GameStage.ServerConnection -> currentWindow?.scene?.root?.replaceWith(
                                 find<ConnectServer>(fragmentScope).root,
+                                null, sizeToScene = true, centerOnScreen = false
+                            )
+                            GameEngine.GameStage.WinScreen -> currentWindow?.scene?.root?.replaceWith(
+                                find<WinnerScreen>(fragmentScope).root,
                                 null, sizeToScene = true, centerOnScreen = false
                             )
                             GameEngine.GameStage.Die -> {

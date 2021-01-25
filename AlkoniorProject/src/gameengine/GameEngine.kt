@@ -3,6 +3,7 @@ package gameengine
 import bot.MouseBot
 import bot.SimpleBot
 import field.*
+import javafx.application.Platform
 import javafx.beans.InvalidationListener
 import javafx.beans.WeakInvalidationListener
 import javafx.beans.WeakListener
@@ -22,13 +23,13 @@ class GameEngine : EventListener {
         LobbyConnection,
         Lobby,
         Game,
+        WinScreen,
         Die
     }
 
 
-
     var still_reading_server = false
-    var sp_mod: Boolean= false
+    var sp_mod: Boolean = false
 
     public var current_stage = SimpleObjectProperty<GameStage>(GameStage.ServerConnection);
 
@@ -47,33 +48,60 @@ class GameEngine : EventListener {
 
     public val max_seconds = 5000
     private val delay_seconds = 50
+    var bot_delay: Long = 200
 
     private var server = Server();
-    private  var bot = SimpleBot(field, Point(), Point());
+    private var bot = SimpleBot(field, Point(), Point());
 
     public var sessionId = "";
 
     public var playersInLobby = SimpleIntegerProperty(0)
     public var playersReadyLobby = SimpleIntegerProperty(0)
 
+    val listener:WeakInvalidationListener = WeakInvalidationListener {
+        if (current_stage.value == GameStage.Die) {
+            try {
+                still_reading_server = false
+            } catch (ex: Throwable) {
+                println(ex.message)
+            }
+            try {
+                server.close()
+            } catch (ex: Throwable) {
+                println(ex.message)
+            }
+            try {
+                field.clear()
+            } catch (ex: Throwable) {
+                println(ex.message)
+            }
+            try {
+                main_thread.interrupt()
+            } catch (ex: Throwable) {
+                println(ex.message)
+            }
+            try {
+                timer.cancel()
+                timer.purge()
+            } catch (ex: Throwable) {
+                println(ex.message)
+            }
+            try
+            {
+                Platform.exit()
+            }catch (ex: Throwable) {
+                println(ex.message)
+            }
+        }
+    }
 
     init {
+        timer.schedule(timerTask, 0, delay_seconds.toLong())
         current_stage.addListener(InvalidationListener {
             lastError.value = null
         })
 
-        current_stage.addListener(InvalidationListener {
-            if (current_stage.value == GameStage.Die) {
-                try {
-                    still_reading_server = false
-                    server.close()
-                    field.clear()
-                    main_thread.interrupt()
-                    timer.cancel()
-                } catch (ex: Throwable) {
-                }
-            }
-        })
+        current_stage.addListener(listener)
     }
 
     fun connect(ip: String, port: String): Boolean {
@@ -112,7 +140,6 @@ class GameEngine : EventListener {
         coroutineScope {
             try {
                 while (still_reading_server) {
-                    try {
                         var mes = server.getMess()
                         launch(Dispatchers.Default) {
                             try {
@@ -122,9 +149,6 @@ class GameEngine : EventListener {
                             }
                         }
                         delay(50)
-                    } catch (ex: Throwable) {
-                        lastError.value = ex
-                    }
                 }
             } catch (ex: Throwable) {
                 lastError.value = ex
@@ -149,23 +173,47 @@ class GameEngine : EventListener {
             "508" -> playersReady("0", msg[1])
             "700" -> fix_turn_number(msg[1])
             "510" -> start_game(msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], msg[7], msg[8], msg[9], msg[10])
-            "777" -> make_turn(msg[1], msg[2], msg[3], msg[4], msg[5], msg[6],msg[7],msg[8],msg)
+            "777" -> make_turn(msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], msg[7], msg[8], msg)
+            "555" -> wining_list(msg)
             else -> {
             }
         }
     }
 
-    var bot_delay:Long = 500
+    public var didPlayrWin = -1
+    public var playerWinId = mutableListOf<Int>()
+    public var playerWinColor = mutableListOf<Int>()
 
-    private suspend fun fix_turn_number(s: String)
-    {
+    private suspend fun wining_list(msg: List<String>) {
+        if (current_stage.value == GameStage.Game) {
+            field.clear()
+            this.has_moved = true
+            this.sp_mod = false
+            this.playerWinId.clear()
+            playerWinColor.clear()
+            didPlayrWin = -1
+            var k = 0
+            for (i in 1..(msg.size-1) step 2) {
+                playerWinId.add(msg[i].toInt())
+                playerWinColor.add(msg[i + 1].toInt())
+                if (msg[i + 1].toInt() == player_id) {
+                    didPlayrWin = 1
+                }
+            }
+            if (sp_mod) {
+                didPlayrWin = 0
+            }
+            current_stage.value = GameStage.WinScreen
+        }
+    }
+
+
+    private suspend fun fix_turn_number(s: String) {
         cur_turn.value = s.toInt()
-        if (cur_target_point != cur_player_pos)
-        {
+        if (cur_target_point != cur_player_pos) {
             delay(bot_delay)
-            if (!has_moved)
-            {
-                move_mouse_to(cur_target_point.x,cur_target_point.y)
+            if (!has_moved) {
+                move_mouse_to(cur_target_point.x, cur_target_point.y)
             }
         }
     }
@@ -200,21 +248,21 @@ class GameEngine : EventListener {
     var cur_direction = 0
     var cur_player_pos = Point()
 
-    var cur_target_point = Point(0,0)
+    var cur_target_point = Point(0, 0)
 
     var has_moved = false;
 
     fun move_mouse_to(x: Int, y: Int) {
         has_moved = true
-        cur_target_point =  Point(x,y)
-        bot.target =  Point(x,y)
+        cur_target_point = Point(x, y)
+        bot.target = Point(x, y)
         bot.position = cur_player_pos
 
         var move = bot.findWayTo()
         cur_direction = move.toInt()
         field.ping()
-        if (move!=SimpleBot.Dirrections.NOTHING)
-            server.sendMess(move.toString()+" "+cur_turn.value)
+        if (move != SimpleBot.Dirrections.NOTHING)
+            server.sendMess(move.toString() + " " + cur_turn.value)
 
     }
 
@@ -232,7 +280,8 @@ class GameEngine : EventListener {
         up: String,
         center: String
     ) {
-        timer.schedule(timerTask, 0, delay_seconds.toLong())
+
+        cur_second.value = 0
 
         field = GameField(width.toInt(), height.toInt())
         for (i in 1..(playersInLobby.value)) {
@@ -259,7 +308,7 @@ class GameEngine : EventListener {
             center, listOf()
         );
 
-        field[15,15].value = CellValue.EXIT
+        field[15, 15].value = CellValue.EXIT
 
         bot = MouseBot(field, cur_player_pos, cur_target_point);
 
@@ -268,8 +317,8 @@ class GameEngine : EventListener {
     }
 
 
-    private suspend fun make_turn (
-        turn : String,
+    private suspend fun make_turn(
+        turn: String,
         x: String,
         y: String,
         left: String,
@@ -287,7 +336,7 @@ class GameEngine : EventListener {
         field[cur_player_pos.x, cur_player_pos.y - 1].shadow = 1
 
         cur_player_pos.x = x.toInt()
-        cur_player_pos.y= y.toInt()
+        cur_player_pos.y = y.toInt()
 
         field[cur_player_pos.x, cur_player_pos.y].value = IntToCell(center.toInt())
         field[cur_player_pos.x - 1, cur_player_pos.y].value = IntToCell(left.toInt())
@@ -311,16 +360,14 @@ class GameEngine : EventListener {
         }
         field.ping()
 
-        cur_turn.value = turn.toInt()+1
+        cur_turn.value = turn.toInt() + 1
 
         cur_second.value = 0;
 
-        if (cur_target_point != cur_player_pos)
-        {
+        if (cur_target_point != cur_player_pos) {
             delay(bot_delay)
-            if (!has_moved)
-            {
-                move_mouse_to(cur_target_point.x,cur_target_point.y)
+            if (!has_moved) {
+                move_mouse_to(cur_target_point.x, cur_target_point.y)
             }
         }
 
@@ -338,8 +385,7 @@ class GameEngine : EventListener {
             if (!sp_mod) {
 
                 server.sendMess("105 ${id}")
-            }else
-            {
+            } else {
                 server.sendMess("105 ${id}")
             }
         }
@@ -353,6 +399,15 @@ class GameEngine : EventListener {
 
     fun playerBack() {
         if (current_stage.value == GameStage.Lobby) {
+            server.sendMess("106")
+            current_stage.value = GameStage.LobbyConnection
+        }
+    }
+
+    fun backToLobbyConnect() {
+        if (current_stage.value == GameStage.WinScreen) {
+            this.sessionId = ""
+            sp_mod = false
             server.sendMess("106")
             current_stage.value = GameStage.LobbyConnection
         }

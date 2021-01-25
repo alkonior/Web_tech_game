@@ -33,6 +33,8 @@
       <sourceFolder url="file://$MODULE_DIR$/resorses/views" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/resorses" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/resurses" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/resurses/img" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/resurses/views" type="java-resource" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

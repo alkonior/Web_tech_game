@@ -162,7 +162,7 @@ class Game : View("Mice in lab.") {
         })
 
 
-        field_.engine.cur_turn.addListener(ChangeListener{ observableValue: ObservableValue<out Number>?, number: Number, number1: Number ->
+        field_.engine.cur_turn.addListener(WeakChangeListener{ observableValue: ObservableValue<out Number>?, number: Number, number1: Number ->
             Platform.runLater({  TurnNumber.text = field_.engine.cur_turn.value.toString()})
         })
         fieldcontaner.onMouseDragged = EventHandler<MouseEvent> { event -> dragNdrop(event) }
@@ -292,87 +292,84 @@ class Game : View("Mice in lab.") {
     }
 
     fun upade_view(field: GameField) {
-        for (i in 0..(screen_width - 1)) {
-            for (j in 0..(screen_height - 1)) {
+        try {
+            for (i in 0..(screen_width - 1)) {
+                for (j in 0..(screen_height - 1)) {
 
 
-                val image1 = firstLayer[i][j]
-                val image2 = secondLayer[i][j]
-                val image3 = thirdLayer[i][j]
+                    val image1 = firstLayer[i][j]
+                    val image2 = secondLayer[i][j]
+                    val image3 = thirdLayer[i][j]
 
-                var mimages = multyKrisaLayer[i][j]
+                    var mimages = multyKrisaLayer[i][j]
 
-                for (m in mimages)
-                    m.isVisible=false
+                    for (m in mimages)
+                        m.isVisible = false
 
-                val cell = field[i + current_pos_x, j + current_pos_y];
+                    val cell = field[i + current_pos_x, j + current_pos_y];
 
 
-                var i2 =
-                    when (cell.shadow) {
-                        0 -> nothingimg
-                        1 -> fogimg
-                        else -> erroeimg
+                    var i2 =
+                        when (cell.shadow) {
+                            0 -> nothingimg
+                            1 -> fogimg
+                            else -> erroeimg
+                        }
+                    var i1 =
+                        when (cell.value) {
+                            CellValue.VOID -> fogimg;
+                            CellValue.FLOOR -> floorimg;
+                            CellValue.WALL -> wallimg;
+                            CellValue.EXIT -> exitimg;
+                            CellValue.EROOR -> erroeimg;
+                            else -> erroeimg
+                        }
+
+                    if (image1.image != i1) {
+                        image1.image = i1
                     }
-                var i1 =
-                    when (cell.value) {
-                        CellValue.VOID -> fogimg;
-                        CellValue.FLOOR -> floorimg;
-                        CellValue.WALL -> wallimg;
-                        CellValue.EXIT -> exitimg;
-                        CellValue.EROOR-> erroeimg;
-                        else -> erroeimg
+                    if (image2.image != i2) {
+                        image2.image = i2
                     }
 
-                if (image1.image != i1) {
-                    image1.image = i1
-                }
-                if (image2.image != i2) {
-                    image2.image = i2
-                }
-
-                image3.isVisible=false
-                if ((i==field_.engine.cur_target_point.x) and (j==field_.engine.cur_target_point.y))
-                {
-                    image3.isVisible=true
+                    image3.isVisible = false
+                    if ((i == field_.engine.cur_target_point.x) and (j == field_.engine.cur_target_point.y)) {
+                        image3.isVisible = true
+                    }
                 }
             }
-        }
 
-        var players  = LinkedHashMap<Point,MutableList<MouseValue>>()
+            var players = LinkedHashMap<Point, MutableList<MouseValue>>()
 
-        for (player in field.players_position)
-        {
-            if (players.containsKey(player.p))
-                players[player.p]?.add(player.color)
-            else
-                players.put(player.p, mutableListOf(player.color))
-        }
-        if (players.containsKey(Point(0,0)))
-        {
-            players.remove(Point(0,0))
-        }
+            for (player in field.players_position) {
+                if (players.containsKey(player.p))
+                    players[player.p]?.add(player.color)
+                else
+                    players.put(player.p, mutableListOf(player.color))
+            }
+            if (players.containsKey(Point(0, 0))) {
+                players.remove(Point(0, 0))
+            }
 
-        for (value in players)
-        {
-            if (value.value.size==1)
-            {
-                firstLayer[value.key.x][value.key.y].image = krisa_img(value.value[0])
-                multyKrisaLayer[value.key.x][value.key.y].map {iii -> { iii.isVisible = false }}
-            }else
-            {
+            for (value in players) {
+                if (value.value.size == 1) {
+                    firstLayer[value.key.x][value.key.y].image = krisa_img(value.value[0])
+                    multyKrisaLayer[value.key.x][value.key.y].map { iii -> { iii.isVisible = false } }
+                } else {
 
-                firstLayer[value.key.x][value.key.y].image = floorimg
-                for (i in 0..(value.value.size-1))
-                {
-                    multyKrisaLayer[value.key.x][value.key.y][i].isVisible = true
-                    multyKrisaLayer[value.key.x][value.key.y][i].image = krisa_img(value.value[i])
-                }
-                for (i in (value.value.size)..3)
-                {
-                    multyKrisaLayer[value.key.x][value.key.y][i].isVisible = false
+                    firstLayer[value.key.x][value.key.y].image = floorimg
+                    for (i in 0..(value.value.size - 1)) {
+                        multyKrisaLayer[value.key.x][value.key.y][i].isVisible = true
+                        multyKrisaLayer[value.key.x][value.key.y][i].image = krisa_img(value.value[i])
+                    }
+                    for (i in (value.value.size)..3) {
+                        multyKrisaLayer[value.key.x][value.key.y][i].isVisible = false
+                    }
                 }
             }
+        }catch (ex:Throwable)
+        {
+            println(ex.message)
         }
     }
 
