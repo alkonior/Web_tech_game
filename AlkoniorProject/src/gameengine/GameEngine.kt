@@ -313,11 +313,11 @@ class GameEngine : EventListener {
             cur_second.value = 0
 
             field = GameField(width.toInt(), height.toInt())
-            for (i in 1..(playersInLobby.value)) {
+            for (i in 1..(4)) {
                 field.players_position.add(
                     Mouse(
                         Point(0, 0),
-                        listOf(MouseValue.RED, MouseValue.YELLOW, MouseValue.BLUE, MouseValue.GREEN)[(i - 1) % 4]
+                        listOf(MouseValue.RED, MouseValue.BLUE, MouseValue.GREEN, MouseValue.YELLOW)[(i - 1) % 4]
                     )
                 )
             }
@@ -388,11 +388,9 @@ class GameEngine : EventListener {
 
             has_moved = false
 
-            var k = 0
-            for (i in 9 until msg.size step 2) {
-                field.players_position[k].p.x = msg[i].toInt()
-                field.players_position[k].p.y = msg[i + 1].toInt()
-                k++
+            for (i in 9 until msg.size step 3) {
+                field.players_position[msg[i].toInt() - 3].p.x = msg[i+1].toInt()
+                field.players_position[msg[i].toInt() - 3].p.y = msg[i+2].toInt()
             }
             field.ping()
 
