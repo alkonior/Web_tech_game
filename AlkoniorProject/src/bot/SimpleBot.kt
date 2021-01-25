@@ -1,5 +1,6 @@
 package bot
 
+import field.CellValue
 import field.GameField
 import java.awt.Point
 import kotlin.math.abs
@@ -8,7 +9,12 @@ open class SimpleBot(val field:GameField,
                      var position:Point,
                      open var target:Point) {
 
-        enum class Dirrections{
+    protected operator fun Point.plus(point: Point): Point {
+        return Point(this.x + point.x, this.y + point.y)
+    }
+
+
+    enum class Dirrections{
             LEFT,
             RIGHT,
             UP,
@@ -23,7 +29,7 @@ open class SimpleBot(val field:GameField,
                     RIGHT -> "203"
                     DOWN -> "204"
                     UP -> "205"
-                    NOTHING -> "huitebe"
+                    NOTHING -> "1488"
                 }
             }
 
@@ -38,6 +44,16 @@ open class SimpleBot(val field:GameField,
                     NOTHING -> 0
                 }
             }
+            fun toDir():Point{
+                return when(this)
+                {
+                    LEFT -> Point(-1,0)
+                    RIGHT -> Point(1,0)
+                    DOWN -> Point(0,1)
+                    UP -> Point(0,-1)
+                    NOTHING -> Point(0,0)
+                }
+            }
         }
 
 
@@ -47,19 +63,26 @@ open class SimpleBot(val field:GameField,
             var max2 = position.y-target.y
             if ((max1 == 0) and( max2==0))
                 return Dirrections.NOTHING
+            var res =
             if (abs(max1) > abs(max2))
             {
                 if (max1>0)
                 {
-                    return Dirrections.LEFT
+                    Dirrections.LEFT
                 }else
-                    return Dirrections.RIGHT
+                    Dirrections.RIGHT
             }   else
                 if (max2>0)
                 {
-                    return Dirrections.UP
+                    Dirrections.UP
                 }else
-                    return Dirrections.DOWN
+                    Dirrections.DOWN
+
+            if  (field[position+res.toDir()].value==CellValue.WALL)
+            {
+                return Dirrections.NOTHING
+            }else
+                return res
 
         }
 

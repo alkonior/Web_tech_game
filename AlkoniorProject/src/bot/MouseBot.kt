@@ -248,6 +248,3 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
 }
 
 
-private operator fun Point.plus(point: Point): Point {
-    return Point(this.x + point.x, this.y + point.y)
-}
