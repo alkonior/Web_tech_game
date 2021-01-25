@@ -3,9 +3,7 @@ package application
 import gameengine.GameEngine
 import javafx.application.Platform
 import javafx.beans.InvalidationListener
-import javafx.scene.control.Label
-import javafx.scene.control.TextArea
-import javafx.scene.control.TextField
+import javafx.scene.control.*
 import javafx.scene.layout.AnchorPane
 import models.GameFieldModel
 import tornadofx.*
@@ -16,6 +14,8 @@ class LobbyConnect : View("Mice in lab.") {
 
     val lobyId: TextField by fxid()
     val errorMes: Label by fxid()
+    val createButton: Button by fxid()
+    val spTriger: CheckBox by fxid()
 
     private val gameEngineModel: GameFieldModel by inject()
     private val gameEngine = gameEngineModel.engine
@@ -48,6 +48,12 @@ class LobbyConnect : View("Mice in lab.") {
             println(ex.message)
             errorMes.text = "ex.message"
         }
+    }
+
+    fun onSpMod()
+    {
+        createButton.isDisable = spTriger.isSelected
+        gameEngine.sp_mod = spTriger.isSelected
     }
 
 

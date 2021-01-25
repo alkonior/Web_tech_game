@@ -22,6 +22,8 @@ class GameEngine : EventListener {
         Die
     }
 
+    var sp_mod: Boolean= false
+
     public var current_stage = SimpleObjectProperty<GameStage>(GameStage.ServerConnection);
 
     public var field = GameField();
@@ -208,6 +210,8 @@ class GameEngine : EventListener {
 
     }
 
+    var player_id = -1
+
     suspend fun start_game(
         color: String,
         width: String,
@@ -232,6 +236,7 @@ class GameEngine : EventListener {
             )
         }
 
+        player_id = color.toInt()
         field.players_position[color.toInt() - 3].p = Point(x.toInt(), y.toInt())
         cur_player_pos = Point(x.toInt(), y.toInt())
         cur_target_point = cur_player_pos
@@ -322,7 +327,13 @@ class GameEngine : EventListener {
     fun connectLobby(id: String) {
         if (current_stage.value == GameStage.LobbyConnection) {
             sessionId = id
-            server.sendMess("105 ${id}")
+            if (!sp_mod) {
+
+                server.sendMess("105 ${id}")
+            }else
+            {
+                server.sendMess("105 ${id}")
+            }
         }
     }
 
