@@ -93,11 +93,6 @@ class GameEngine : EventListener {
             } catch (ex: Throwable) {
                 println(ex.message)
             }
-            try {
-                thread_context.close()
-            } catch (ex: Throwable) {
-                println(ex.message)
-            }
         }
     }
 
@@ -147,7 +142,6 @@ class GameEngine : EventListener {
         }
     }
 
-    var thread_context = newSingleThreadContext("ComandExecutor")
 
     fun server_comand_reeder() = runBlocking {
         coroutineScope {
@@ -155,7 +149,7 @@ class GameEngine : EventListener {
                 while (still_reading_server.get()) {
                     try {
                         var mes = server.getMess()
-                        launch(thread_context) {
+                        launch(Dispatchers.Default) {
                             try {
                                 command(mes)
                             } catch (ex: Throwable) {
@@ -400,7 +394,7 @@ class GameEngine : EventListener {
             }
         current_stage.value = GameStage.Game
 
-        launch(thread_context) {
+        launch(Dispatchers.Default) {
             delay(50)
             make_turn(
                 "-1",
@@ -428,7 +422,7 @@ class GameEngine : EventListener {
         center: String,
         msg: List<String>
     ) {
-        if (!sp_mod)
+
             if (current_stage.value == GameStage.Game) {
                 field[cur_player_pos.x, cur_player_pos.y].shadow = 1
                 field[cur_player_pos.x + 1, cur_player_pos.y].shadow = 1

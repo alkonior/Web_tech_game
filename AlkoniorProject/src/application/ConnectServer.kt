@@ -11,6 +11,8 @@ import javafx.scene.layout.AnchorPane
 import models.GameFieldModel
 import tornadofx.*
 import java.lang.Thread.sleep
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.thread
 import kotlin.system.exitProcess
 
 class ConnectServer : View("Mice in lab.") {
@@ -24,6 +26,8 @@ class ConnectServer : View("Mice in lab.") {
 
     private val field_: GameFieldModel by inject()
     lateinit var gameEngine : GameEngine
+    private lateinit var connect_thread:Thread
+
 
     init {
         try {
@@ -80,24 +84,29 @@ class ConnectServer : View("Mice in lab.") {
         }
     }
 
+    var can_run_connect= AtomicBoolean(true)
 
     fun connect() {
         println("Connect")
-
-        try {
-            if (gameEngine.connect(Id.text, Port.text)) {
-
-                val model = GameFieldModel(gameEngine);
-                val fragmentScope = Scope()
-                setInScope(model, fragmentScope)
-                val gameview = find<LobbyConnect>(fragmentScope)
-
-                replaceWith(gameview)
+        if (can_run_connect.get()) {
+            if (this::connect_thread.isInitialized) {
+                connect_thread.join()
             }
+            connect_thread = thread {
+                try {
+                    can_run_connect.set(false)
+                    gameEngine.connect(Id.text, Port.text)
 
-        } catch (exe: Throwable) {
-            ErrorMessage.text = exe.message
+                } catch (exe: Throwable) {
+                    Platform.runLater {
+                        ErrorMessage.text = exe.message
+                    }
+                } finally {
+                    can_run_connect.set(true)
+                }
+            }
         }
+
     }
 
 
