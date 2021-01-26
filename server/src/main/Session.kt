@@ -85,7 +85,7 @@ class Session(_status: Status) {
         _player.session = this
         _player.status = Player.Status.SPECTATING
         spectators[_player.id] = _player
-        return "511"
+        return "513"
     }
 
     //Удаление игрока из данной сессии
