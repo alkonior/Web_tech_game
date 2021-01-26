@@ -23,6 +23,7 @@ import models.GameFieldModel
 import tornadofx.ChangeListener
 import tornadofx.View
 import java.awt.Point
+import java.lang.Integer.max
 
 class Game : View("Mice in lab.") {
     override val root: AnchorPane by fxml("/views/game.fxml")
@@ -206,7 +207,7 @@ class Game : View("Mice in lab.") {
             Platform.runLater(
                 Runnable {
                     timer.value = (newValue.toDouble() / field_.engine.max_seconds * 100)
-                    var right = "${1000-(newValue.toInt())%1000}"
+                    var right = "${(max(5000-newValue.toInt(),0))%1000}"
                     var left = (5000-newValue.toInt())/1000
                     if (left<0)
                     {

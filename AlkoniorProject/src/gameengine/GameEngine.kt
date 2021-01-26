@@ -206,7 +206,7 @@ class GameEngine : EventListener {
 
     private fun start_spectator(width: String, height: String, msg: List<String>) = runBlocking {
         if (sp_mod)
-            if (current_stage.value == GameStage.Lobby) {
+            if (current_stage.value == GameStage.LobbyConnection) {
                 cur_second.value = 0
 
                 field = GameField(width.toInt(), height.toInt())
@@ -229,18 +229,19 @@ class GameEngine : EventListener {
                             "2" -> CellValue.EXIT
                             else -> CellValue.FLOOR
                         }
+                        field[i,j].shadow = 0
                     }
 
+                cur_player_pos = Point(field.width/2, field.height/2)
+                cur_target_point = Point(field.width/2, field.height/2)
 
                 current_stage.value = GameStage.Game
 
-                launch(thread_context) {
-                    delay(50)
+                run {
                     update_spectator(
                         "0",
-                        msg.subList((3+field.height*field.width),(msg.size))
+                        msg.subList((3+field.height*field.width-2),(msg.size))
                     )
-
                 }
 
             }
@@ -249,7 +250,13 @@ class GameEngine : EventListener {
     private suspend fun update_spectator(turn: String, msg: List<String>) {
         if (sp_mod)
             if (current_stage.value == GameStage.Game) {
-                println(msg)
+                cur_second.value = 0
+                cur_turn.value = turn.toInt()
+                for (i in 2 until msg.size step 3) {
+                    field.players_position[msg[i].toInt() - 3].p.x = msg[i + 1].toInt()
+                    field.players_position[msg[i].toInt() - 3].p.y = msg[i + 2].toInt()
+                }
+                field.ping()
             }
     }
 
@@ -331,18 +338,23 @@ class GameEngine : EventListener {
     var has_moved = false;
 
     fun move_mouse_to(x: Int, y: Int) {
-        if (current_stage.value == GameStage.Game) {
-            has_moved = true
+        if (!sp_mod) {
+            if (current_stage.value == GameStage.Game) {
+                has_moved = true
+                cur_target_point = Point(x, y)
+                bot.target = Point(x, y)
+                bot.position = cur_player_pos
+
+                var move = bot.findWayTo()
+                cur_direction = move.toInt()
+                field.ping()
+                if (move != SimpleBot.Dirrections.NOTHING)
+                    server.sendMess(move.toString() + " " + cur_turn.value)
+
+            }
+        }else
+        {
             cur_target_point = Point(x, y)
-            bot.target = Point(x, y)
-            bot.position = cur_player_pos
-
-            var move = bot.findWayTo()
-            cur_direction = move.toInt()
-            field.ping()
-            if (move != SimpleBot.Dirrections.NOTHING)
-                server.sendMess(move.toString() + " " + cur_turn.value)
-
         }
     }
 
