@@ -217,7 +217,7 @@ class Session(_status: Status) {
             x.ready = false
         }
         if(!spectators.isEmpty()){
-            var msg = "770"
+            var msg = "770 ${turn.get()}"
             for(x in players.values){
                 msg += " ${x.color} ${x.pos[0]} ${x.pos[1]}"
             }
