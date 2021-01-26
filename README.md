@@ -1,6 +1,10 @@
-# Web_tech_game
+# Многопользовательская игра "Мышиный лабиринт"
+
+
 
 ###Server
+Спецификация пакетов: [здесь](packet-specs.md)
+
 Для создания .jar файла установите maven
 http://maven.apache.org/install.html
 
