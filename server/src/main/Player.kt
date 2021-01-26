@@ -22,6 +22,7 @@ class Player(_id: Int, _socket: Socket, _session: Session) {
         LOBBY,
         READY,
         INGAME,
+        SPECTATING,
         FINISHED
     }
 

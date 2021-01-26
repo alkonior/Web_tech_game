@@ -99,6 +99,8 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
                 }
                 //Запрос на подключение к сессии
                 105 -> toLobby(msg[1])
+                //Запрос на просмотр сессии
+                305 -> spectate(msg[1])
                 //Подтверждение готовности в лобби
                 112 -> ready()
                 //Покинуть лобби
@@ -122,12 +124,47 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
     private fun toLobby(_msg: String) {
         //Нельзя попасть в лобби не из стартового меню
         if (player.status != Player.Status.IDLING) {
+            println(player.status)
             player.write("666")
         } else {
             if (server.sessions.containsKey(_msg.toInt())) {
-                val code: String = server.sessions[_msg.toInt()]!!.addPlayer(player)
-                val responce = "${code} ${player.session.ready} ${player.session.playerCount}"
-                announce(true, responce)
+                if (server.sessions[_msg.toInt()]!!.status == Session.Status.LOBBY) {
+                    val code: String = server.sessions[_msg.toInt()]!!.addPlayer(player)
+                    val responce = "${code} ${player.session.ready} ${player.session.playerCount}"
+                    announce(true, responce)
+                } else {
+                    player.write("506")
+                }
+            } else {
+                //Лобби не найдено
+                player.write("506")
+            }
+        }
+    }
+
+    //Функция добавления игрока в запущенную игру
+    //в качестве наблюдателя
+    private fun spectate(_msg: String) {
+        //Нельзя попасть в лобби не из стартового меню
+        if (player.status != Player.Status.IDLING) {
+            player.write("666")
+        } else {
+            if (server.sessions.containsKey(_msg.toInt())) {
+                if (server.sessions[_msg.toInt()]!!.status == Session.Status.INGAME) {
+                    val code: String = server.sessions[_msg.toInt()]!!.addSpectator(player)
+                    var responce = "${code} ${player.session.maze.width} ${player.session.maze.height}"
+                    for (x in player.session.maze.maze) {
+                        for (y in x) {
+                            responce += " ${y}"
+                        }
+                    }
+                    for (x in player.session.players.values) {
+                        responce += " ${x.color} ${x.pos[0]} ${x.pos[1]}"
+                    }
+                    player.write(responce)
+                } else {
+                    player.write("511")
+                }
             } else {
                 //Лобби не найдено
                 player.write("506")
@@ -153,11 +190,16 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
     //Функция выхода из лобби
     private fun back() {
         if (player.status == Player.Status.LOBBY || player.status == Player.Status.READY ||
-            player.session.status == Session.Status.FINISHED) {
-            if (player.session.playerCount != 1) {
-                player.session.removePlayer(player)
+            player.session.status == Session.Status.FINISHED
+        ) {
+            if (player.status == Player.Status.SPECTATING) {
+                player.session.removeSpectator(player)
             } else {
-                server.deleteSession(player.session.id)
+                if (player.session.playerCount != 1) {
+                    player.session.removePlayer(player)
+                } else {
+                    server.deleteSession(player.session.id)
+                }
             }
             server.waitList.addPlayer(player)
             player.write("500")
@@ -166,8 +208,9 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         }
     }
 
+    //Функция обработки перемещений
     private fun move(_direction: Int, _turn: Int) {
-        if (player.status == Player.Status.INGAME && _turn == player.session.turn) {
+        if (player.status == Player.Status.INGAME && _turn == player.session.turn.get()) {
             player.transPos = arrayOf(player.pos[0], player.pos[1])
             when (_direction) {
                 202 -> player.transPos[0]--
@@ -177,8 +220,8 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
             }
             player.ready = true
         } else {
-            if (_turn != player.session.turn) {
-                player.write("700 ${player.session.turn}")
+            if (_turn != player.session.turn.get()) {
+                player.write("700 ${player.session.turn.get()}")
             } else {
                 player.write("666")
             }
@@ -212,8 +255,14 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         running = false
         player.socket.close()
         println("${player.socket.inetAddress.hostAddress} with id ${player.id} closed the connection")
-        player.session.removePlayer(player)
-        if (player.session.playerCount == 0 && player.session.status != Session.Status.IDLING) {
+        if (player.status != Player.Status.SPECTATING) {
+            player.session.removePlayer(player)
+        } else {
+            player.session.removeSpectator(player)
+        }
+        if (player.session.playerCount == 0 && player.session.status != Session.Status.IDLING &&
+            player.session.spectators.isEmpty()
+        ) {
             server.sessions[player.session.id]!!.status = Session.Status.IDLING
             server.deleteSession(player.session.id)
         }
