@@ -260,10 +260,14 @@ class ClientHandler(_client: Socket, _playerId: Int, _waitList: Session) {
         } else {
             player.session.removeSpectator(player)
         }
-        if (player.session.playerCount == 0 && player.session.status != Session.Status.IDLING &&
-            player.session.spectators.isEmpty()
+        if (player.session.playerCount == 0 && player.session.status != Session.Status.IDLING
         ) {
-            server.sessions[player.session.id]!!.status = Session.Status.IDLING
+            server.sessions[player.session.id]!!.status = Session.Status.FINISHED
+            if(!player.session.spectators.isEmpty()){
+                for(x in server.sessions[player.session.id]!!.spectators.values){
+                    x.write("555")
+                }
+            }
             server.deleteSession(player.session.id)
         }
     }
