@@ -11,12 +11,12 @@
    <children>
       <VBox alignment="CENTER" layoutX="59.0" prefHeight="816.0" prefWidth="830.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <Label fx:id="winnerMessage" alignment="CENTER" prefHeight="231.0" prefWidth="640.0" text="Поздравляем с победой" textAlignment="CENTER">
+            <Label fx:id="winnerMessage" alignment="TOP_CENTER" prefHeight="128.0" prefWidth="640.0" text="Поздравляем с победой" textAlignment="CENTER">
                <font>
                   <Font size="46.0" />
                </font>
             </Label>
-            <Pane prefHeight="34.0" prefWidth="522.0" />
+            <Pane prefHeight="28.0" prefWidth="830.0" />
             <VBox alignment="CENTER">
                <children>
                   <Label text="Список победителей:">
@@ -25,10 +25,10 @@
                      </font>
                   </Label>
                   <Pane prefHeight="10.0" prefWidth="640.0" />
-                  <VBox fx:id="winnerList" alignment="CENTER" prefHeight="175.0" prefWidth="640.0" />
+                  <VBox fx:id="winnerList" alignment="TOP_CENTER" prefHeight="327.0" prefWidth="830.0" />
                </children>
             </VBox>
-            <Pane prefHeight="30.0" prefWidth="522.0" />
+            <Pane prefHeight="83.0" prefWidth="830.0" />
             <Button mnemonicParsing="false" onAction="#onBack" prefHeight="71.0" prefWidth="393.0" text="Вернутся к выбору лобби">
                <font>
                   <Font size="25.0" />

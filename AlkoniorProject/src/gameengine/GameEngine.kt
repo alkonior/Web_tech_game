@@ -258,15 +258,13 @@ class GameEngine : EventListener {
     public var playerWinId = mutableListOf<Int>()
     public var playerWinColor = mutableListOf<Int>()
 
-    private suspend fun wining_list(msg: List<String>) {
+    private fun wining_list(msg: List<String>) {
         if (current_stage.value == GameStage.Game) {
             field.clear()
-            this.has_moved = true
-            this.sp_mod = false
+
             this.playerWinId.clear()
             playerWinColor.clear()
             didPlayrWin = -1
-            var k = 0
             for (i in 1..(msg.size - 1) step 2) {
                 playerWinId.add(msg[i].toInt())
                 playerWinColor.add(msg[i + 1].toInt())
@@ -277,6 +275,8 @@ class GameEngine : EventListener {
             if (sp_mod) {
                 didPlayrWin = 0
             }
+            this.has_moved = true
+            this.sp_mod = false
             current_stage.value = GameStage.WinScreen
         }
     }

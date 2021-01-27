@@ -53,9 +53,8 @@ class Game : View("Mice in lab.") {
     private val field_: GameFieldModel by inject()
     private val field = field_.engine.field
 
-    private val floorimg = Image("/img/void.png")
+    private val floorimg = Image("/img/floor.png")
     private val wallimg = Image("/img/wall.png")
-    private val krisaimg = Image("/img/krisa.png")
     private val fogimg = Image("/img/fog.png")
     private val nothingimg = Image("/img/nothing.png")
     private val erroeimg = Image("/img/error.png")

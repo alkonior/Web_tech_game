@@ -18,32 +18,36 @@ class WinnerScreen : View("My View") {
     private val gameEngine = gameEngineModel.engine
 
     init {
-        when(gameEngine.didPlayrWin)
-        {
+        when (gameEngine.didPlayrWin) {
             -1 -> winnerMessage.text = "Вам не повезло.\nКто-то прибежал к выходу."
             1 -> winnerMessage.text = "Поздравляем с победой!!!"
             0 -> winnerMessage.text = "Игра закончилась."
         }
-        for (i in 0 until gameEngine.playerWinId.size)
-        {
-            val label = Label()
-            label.alignment=Pos.CENTER
-            label.font = Font.font("System",20.0)
-            label.text = "Игрок с id: ${gameEngine.playerWinId[i]}"
-            label.text +=when(gameEngine.playerWinColor[i])
-            {
-                3 -> "\nКрасная мышь"
-                4 -> "\nСиняя мышь"
-                5 -> "\nЗеленая мышь"
-                6 -> "\nЖелтая мышь"
-                else -> ""
+        for (i in 0 until gameEngine.playerWinId.size) {
+            run {
+                val label = Label()
+                label.alignment = Pos.CENTER
+                label.font = Font.font("System", 20.0)
+                label.text = "Игрок с id: ${gameEngine.playerWinId[i]}"
+                winnerList.add(label)
             }
-            winnerList.add(label)
+            run {
+                val label = Label()
+                label.alignment = Pos.CENTER
+                label.font = Font.font("System", 20.0)
+                label.text = when (gameEngine.playerWinColor[i]) {
+                    3 -> "\nКрасная мышь"
+                    4 -> "\nСиняя мышь"
+                    5 -> "\nЗеленая мышь"
+                    6 -> "\nЖелтая мышь"
+                    else -> ""
+                }
+                winnerList.add(label)
+            }
         }
     }
 
-    fun onBack()
-    {
+    fun onBack() {
         gameEngine.backToLobbyConnect()
     }
 
