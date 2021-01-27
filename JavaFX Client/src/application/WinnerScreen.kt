@@ -24,13 +24,7 @@ class WinnerScreen : View("My View") {
             0 -> winnerMessage.text = "Игра закончилась."
         }
         for (i in 0 until gameEngine.playerWinId.size) {
-            run {
-                val label = Label()
-                label.alignment = Pos.CENTER
-                label.font = Font.font("System", 20.0)
-                label.text = "Игрок с id: ${gameEngine.playerWinId[i]}"
-                winnerList.add(label)
-            }
+
             run {
                 val label = Label()
                 label.alignment = Pos.CENTER

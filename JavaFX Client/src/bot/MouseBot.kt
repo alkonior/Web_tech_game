@@ -34,18 +34,14 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
         set(value) {
             if (target != value) {
                 theWay.clear()
-                if (value != position) {
-                    field = value
-                    aStarDist()
-                }
             }
             field = value
         }
 
-    var aStarVoid = 7
-    var aStarFloor = 3
+    var aStarVoid = 4
+    var aStarFloor = 2
     var way_len = 15
-    var void_punish = 10
+    var void_punish = 5
 
     private var moveDirections = listOf(
         Point(1, 0),
@@ -101,7 +97,6 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
             }
 
         }
-        field.ping()
     }
 
     override fun findWayTo(): Dirrections {
@@ -112,6 +107,10 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
 
 
         if (position !in theWay) {
+            for (p in 0 until field.width)
+                for (q in 0 until field.height)
+                    checked[p][q] = false
+            aStarDist()
             for (p in 0 until field.width)
                 for (q in 0 until field.height)
                     checked[p][q] = false
@@ -168,6 +167,11 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
                                             ii++
                                         }
                                         checkPoints.add(PointDist(pd.p + dir, distance + ii, pd))
+                                    }
+                                    if ((pd.p + dir) == target) {
+                                        checkPoints.add(PointDist(pd.p + dir, -10000, pd))
+                                        setDist(pd.p + dir, -1000);
+                                        break
                                     }
 
                                 }

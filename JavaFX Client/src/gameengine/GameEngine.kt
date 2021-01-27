@@ -185,7 +185,7 @@ class GameEngine : EventListener {
             "506" -> throw Throwable("Session doesn't exist.")
             //Сессия полная
             "507" -> throw Throwable("Session is full.")
-            "511" -> throw Throwable("Game doesn't start yet.")
+            "511" -> throw Throwable("Game didn't start yet.")
             "508" -> playersReady("0", msg[1])
             "700" -> fix_turn_number(msg[1])
             "510" -> start_game(msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], msg[7], msg[8], msg[9], msg[10])

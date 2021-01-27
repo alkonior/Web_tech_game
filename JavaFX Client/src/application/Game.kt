@@ -38,7 +38,11 @@ class Game : View("Mice in lab.") {
     private var screen_width: Int = 0
     private var screen_height: Int = 0
 
-    private val cellSize = 64
+
+    private val field_: GameFieldModel by inject()
+    private val field = field_.engine.field
+
+    private val cellSize = if (field_.engine.sp_mod) {25} else {50}
 
     private var max_screen_width: Int = 100
     private var max_screen_height: Int = 100
@@ -49,9 +53,6 @@ class Game : View("Mice in lab.") {
     private var current_pos_x: Int = 0;
     private var current_pos_y: Int = 0;
 
-
-    private val field_: GameFieldModel by inject()
-    private val field = field_.engine.field
 
     private val floorimg = Image("/img/floor.png")
     private val wallimg = Image("/img/wall.png")
@@ -82,7 +83,6 @@ class Game : View("Mice in lab.") {
     private var multyKrisaLayer = mutableListOf<MutableList<MutableList<ImageView>>>()
     private var secondLayer = mutableListOf<MutableList<ImageView>>()
     private var thirdLayer = mutableListOf<MutableList<ImageView>>()
-    private var textLayer = mutableListOf<MutableList<Label>>()
 
     init {
         /*
@@ -110,18 +110,15 @@ class Game : View("Mice in lab.") {
             multyKrisaLayer.add(mutableListOf())
             secondLayer.add(mutableListOf())
             thirdLayer.add(mutableListOf())
-            textLayer.add(mutableListOf())
             for (j in 0..(screen_height - 1)) {
 
                 firstLayer[i].add(ImageView())
                 secondLayer[i].add(ImageView())
                 thirdLayer[i].add(ImageView())
-                textLayer[i].add(Label(""))
 
                 var image1 = firstLayer[i][j]
                 var image2 = secondLayer[i][j]
                 var image3 = thirdLayer[i][j]
-                var label = textLayer[i][j]
 
                 image1.fitWidth = cellSize * 1.0;
                 image1.fitHeight = cellSize * 1.0;
@@ -150,17 +147,11 @@ class Game : View("Mice in lab.") {
                     }
                 }
 
-                label.minWidth = cellSize * 1.0;
-                label.maxWidth = cellSize * 1.0;
-                label.setStyle("-fx-background-color: rgba(0, 0, 0, 0.0);");
-                label.alignment = (Pos.CENTER);
-                label.text = "$i $j"
 
                 fieldview.add(image1, i, j)
                 fieldview.add(panel, i, j)
                 fieldview.add(image2, i, j)
                 fieldview.add(image3, i, j)
-                fieldview.add(label, i, j)
 
             }
         }
@@ -186,11 +177,12 @@ class Game : View("Mice in lab.") {
                 if (event.button == MouseButton.PRIMARY) {
                     clicked_point_x = (((event.getSceneX() - field_margine_x).toInt()) / cellSize)
                     clicked_point_y = (((event.getSceneY() - field_margine_y - 40).toInt()) / cellSize)
-                    if((clicked_point_x>0) and (clicked_point_x<field.width))
-                        if((clicked_point_y>0) and (clicked_point_y<field.height))
+                    if((clicked_point_x>0) and (clicked_point_x<field.width-1))
+                        if((clicked_point_y>0) and (clicked_point_y<field.height-1))
                             field_.engine.move_mouse_to(clicked_point_x, clicked_point_y)
                     upade_view(field)
                 }
+                println("${field_margine_x} ${field_margine_y}")
                 draging = false;
             }
         }
@@ -231,16 +223,25 @@ class Game : View("Mice in lab.") {
         upade_view(field)
 
 
-                fixmagrine(
-                    -(field_.engine.cur_player_pos.x -5) * cellSize * 1.0,
-                    -(field_.engine.cur_player_pos.y -5) * cellSize * 1.0
-                )
 
 
 
-        currentWindow?.width = 1040.0
-        currentWindow?.height = 940.0
+        if (field_.engine.sp_mod) {
+            fixmagrine(
+                5.0,
+                5 * 1.0
+            )
+            currentWindow?.width = 800.0
+            currentWindow?.height = 870.0
+        }
+        else
+        {
+            fixmagrine(
+                -(field_.engine.cur_player_pos.x-2) * cellSize * 1.0,
+                -(field_.engine.cur_player_pos.y-2) * cellSize * 1.0
+            )
 
+        }
         SessionId.text = field_.engine.sessionId
 
     }
@@ -309,9 +310,8 @@ class Game : View("Mice in lab.") {
                     val image1 = firstLayer[i][j]
                     val image2 = secondLayer[i][j]
                     val image3 = thirdLayer[i][j]
-                    val label = textLayer[i][j]
 
-                    var mimages = multyKrisaLayer[i][j]
+                    val mimages = multyKrisaLayer[i][j]
 
                     for (m in mimages)
                         m.isVisible = false
@@ -346,7 +346,6 @@ class Game : View("Mice in lab.") {
                     if ((i == field_.engine.cur_target_point.x) and (j == field_.engine.cur_target_point.y)) {
                         image3.isVisible = true
                     }
-                    label.text = cell.text
                 }
             }
 
