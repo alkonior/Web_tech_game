@@ -35,7 +35,10 @@ class GameField(var width: Int, var height: Int) : Observable {
 
 
 
-    public class CellInfo(var value: CellValue, var shadow: Int) {
+    public class CellInfo(var value: CellValue, var shadow: Int, var text:String) {
+        constructor(value: CellValue,  shadow: Int):this(value,shadow,""){
+
+        }
     }
 
     private val listeners = mutableMapOf<Int, InvalidationListener>();

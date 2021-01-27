@@ -336,8 +336,8 @@ class GameEngine : EventListener {
             if (current_stage.value == GameStage.Game) {
                 has_moved = true
                 cur_target_point = Point(x, y)
-                bot.target = Point(x, y)
                 bot.position = cur_player_pos
+                bot.target = Point(x, y)
 
                 var move = bot.findWayTo()
                 cur_direction = move.toInt()
