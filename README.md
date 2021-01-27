@@ -1,9 +1,11 @@
 # Многопользовательская игра "Мышиный лабиринт"
 
 
-Спецификация пакетов: [здесь](packet-specs.md)
+
 
 ### Server
+
+Спецификация пакетов: [здесь](packet-specs.md)
 
 Для создания .jar файла установите maven
 http://maven.apache.org/install.html
@@ -29,5 +31,5 @@ mvn clean install
 ```
 
 ```
-target/mainModule-1.1-jar-with-dependencies - нужный файл.
+target/JavaFX-Client-2.0-jar-with-dependencies.jar - нужный файл.
 ```
