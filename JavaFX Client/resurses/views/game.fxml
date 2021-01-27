@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane minHeight="300.0" minWidth="300.0" prefHeight="640.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <AnchorPane fx:id="fieldcontaner" style="-fx-background-color: gray;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0">
+         <children>
+            <GridPane fx:id="fieldview" prefHeight="640.0" prefWidth="640.0">
+            </GridPane>
+         </children>
+      </AnchorPane>
+      <AnchorPane maxHeight="40.0" minHeight="40.0" prefHeight="40.0" style="-fx-background-color: white;" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <HBox alignment="CENTER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+               <children>
+                  <Label fx:id="TimerLabel" alignment="CENTER" prefHeight="32.0" prefWidth="133.0" text="0 : 0">
+                     <font>
+                        <Font name="System Bold" size="22.0" />
+                     </font>
+                  </Label>
+                  <Slider fx:id="timer" blockIncrement="0.0" disable="true" majorTickUnit="100.0" prefHeight="14.0" prefWidth="193.0">
+                  </Slider>
+                  <Label alignment="CENTER" prefHeight="32.0" prefWidth="139.0" text="Session Id:">
+                     <font>
+                        <Font name="System Bold" size="17.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="SessionId" alignment="CENTER" prefHeight="32.0" prefWidth="179.0">
+                     <font>
+                        <Font name="System Bold" size="22.0" />
+                     </font>
+                  </Label>
+                  <Label alignment="CENTER" prefHeight="32.0" prefWidth="88.0" text="Ход:">
+                     <font>
+                        <Font name="System Bold" size="17.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="TurnNumber" alignment="CENTER" prefHeight="32.0" prefWidth="179.0">
+                     <font>
+                        <Font name="System Bold" size="22.0" />
+                     </font>
+                  </Label>
+               </children>
+            </HBox>
+         </children>
+      </AnchorPane>
+   </children>
+</AnchorPane>
