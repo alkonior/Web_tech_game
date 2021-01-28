@@ -217,18 +217,19 @@ class MouseBot(field: GameField, position: Point, target: Point) : SimpleBot(fie
                 addPoints.clear()
 
             }
-
-            var t = checkPoints.first()
-            var p = t.p
-            while (p != position) {
-                theWay.add(p)
-                t = t.lastpd
-                p = t.p
-            }
-            theWay.add(Point(position.x, position.y))
-            theWay.reverse()
-            field.ping()
-
+            if (checkPoints.size>0) {
+                var t = checkPoints.first()
+                var p = t.p
+                while (p != position) {
+                    theWay.add(p)
+                    t = t.lastpd
+                    p = t.p
+                }
+                theWay.add(Point(position.x, position.y))
+                theWay.reverse()
+                field.ping()
+            }else
+                return Dirrections.NOTHING
 
         }
 

@@ -48,7 +48,7 @@ class GameEngine : EventListener {
 
     public val max_seconds = 5000
     private val delay_seconds = 50
-    var bot_delay: Long = 200
+    var bot_delay: Long = 100
 
     private var server = Server();
     private var bot = SimpleBot(field, Point(), Point());
@@ -272,7 +272,7 @@ class GameEngine : EventListener {
             if (sp_mod) {
                 didPlayrWin = 0
             }
-            this.has_moved = true
+            this.has_moved.set(true)
             this.sp_mod = false
             current_stage.value = GameStage.WinScreen
         }
@@ -281,11 +281,12 @@ class GameEngine : EventListener {
 
     private suspend fun fix_turn_number(s: String) {
         if (current_stage.value == GameStage.Game) {
+            has_moved.set(false)
             cur_turn.value = s.toInt()
             if (!sp_mod)
                 if (cur_target_point != cur_player_pos) {
                     delay(bot_delay)
-                    if (!has_moved) {
+                    if (!has_moved.get()) {
                         move_mouse_to(cur_target_point.x, cur_target_point.y)
                     }
                 }
@@ -326,12 +327,12 @@ class GameEngine : EventListener {
 
     var cur_target_point = Point(0, 0)
 
-    var has_moved = false;
+    var has_moved = AtomicBoolean(false);
 
     fun move_mouse_to(x: Int, y: Int) {
         if (!sp_mod) {
             if (current_stage.value == GameStage.Game) {
-                has_moved = true
+                has_moved.set(true)
                 cur_target_point = Point(x, y)
                 bot.position = cur_player_pos
                 bot.target = Point(x, y)
@@ -441,7 +442,7 @@ class GameEngine : EventListener {
             field[cur_player_pos.x, cur_player_pos.y + 1].shadow = 0
             field[cur_player_pos.x, cur_player_pos.y - 1].shadow = 0
 
-            has_moved = false
+            has_moved.set(false)
 
             for (i in 9 until msg.size step 3) {
                 field.players_position[msg[i].toInt() - 3].p.x = msg[i + 1].toInt()
@@ -455,7 +456,7 @@ class GameEngine : EventListener {
 
             if (cur_target_point != cur_player_pos) {
                 delay(bot_delay)
-                if (!has_moved) {
+                if (!has_moved.get()) {
                     move_mouse_to(cur_target_point.x, cur_target_point.y)
                 }
             }
