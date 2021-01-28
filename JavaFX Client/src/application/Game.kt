@@ -234,14 +234,6 @@ class Game : View("Mice in lab.") {
             currentWindow?.width = 800.0
             currentWindow?.height = 870.0
         }
-        else
-        {
-            fixmagrine(
-                -(field_.engine.cur_player_pos.x-2) * cellSize * 1.0,
-                -(field_.engine.cur_player_pos.y-2) * cellSize * 1.0
-            )
-
-        }
         SessionId.text = field_.engine.sessionId
 
     }

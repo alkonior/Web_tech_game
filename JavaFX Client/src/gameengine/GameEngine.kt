@@ -115,8 +115,7 @@ class GameEngine : EventListener {
                 current_stage.value = GameStage.LobbyConnection
 
                 still_reading_server.set(true)
-                if (this::main_thread.isInitialized)
-                {
+                if (this::main_thread.isInitialized) {
                     main_thread.join()
                 }
                 main_thread = thread {
@@ -190,7 +189,7 @@ class GameEngine : EventListener {
             "700" -> fix_turn_number(msg[1])
             "510" -> start_game(msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], msg[7], msg[8], msg[9], msg[10])
             "777" -> make_turn(msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], msg[7], msg[8], msg)
-            "770" -> update_spectator(msg[1],msg)
+            "770" -> update_spectator(msg[1], msg)
             "513" -> start_spectator(msg[1], msg[2], msg)
             "555" -> wining_list(msg)
             else -> {
@@ -213,28 +212,26 @@ class GameEngine : EventListener {
                     )
                 }
 
-                for ( i in 0 until field.width)
-                    for ( j in 0 until field.height)
-                    {
-                        field[i,j].value = when(msg[3+i*field.width + j])
-                        {
+                for (i in 0 until field.width)
+                    for (j in 0 until field.height) {
+                        field[i, j].value = when (msg[3 + i * field.width + j]) {
                             "0" -> CellValue.FLOOR
                             "1" -> CellValue.WALL
                             "2" -> CellValue.EXIT
                             else -> CellValue.FLOOR
                         }
-                        field[i,j].shadow = 0
+                        field[i, j].shadow = 0
                     }
 
-                cur_player_pos = Point(field.width/2, field.height/2)
-                cur_target_point = Point(field.width/2, field.height/2)
+                cur_player_pos = Point(field.width / 2, field.height / 2)
+                cur_target_point = Point(field.width / 2, field.height / 2)
 
                 current_stage.value = GameStage.Game
 
                 run {
                     update_spectator(
                         "0",
-                        msg.subList((3+field.height*field.width-2),(msg.size))
+                        msg.subList((3 + field.height * field.width - 2), (msg.size))
                     )
                 }
 
@@ -286,12 +283,12 @@ class GameEngine : EventListener {
         if (current_stage.value == GameStage.Game) {
             cur_turn.value = s.toInt()
             if (!sp_mod)
-            if (cur_target_point != cur_player_pos) {
-                delay(bot_delay)
-                if (!has_moved) {
-                    move_mouse_to(cur_target_point.x, cur_target_point.y)
+                if (cur_target_point != cur_player_pos) {
+                    delay(bot_delay)
+                    if (!has_moved) {
+                        move_mouse_to(cur_target_point.x, cur_target_point.y)
+                    }
                 }
-            }
         }
     }
 
@@ -346,8 +343,7 @@ class GameEngine : EventListener {
                     server.sendMess(move.toString() + " " + cur_turn.value)
 
             }
-        }else
-        {
+        } else {
             cur_target_point = Point(x, y)
         }
     }
@@ -391,23 +387,23 @@ class GameEngine : EventListener {
                 bot = MouseBot(field, cur_player_pos, cur_target_point);
 
 
+
+                current_stage.value = GameStage.Game
+
+                launch(Dispatchers.Default) {
+                    delay(50)
+                    make_turn(
+                        "-1",
+                        x,
+                        y,
+                        left,
+                        right,
+                        down,
+                        up,
+                        center, listOf()
+                    );
+                }
             }
-        current_stage.value = GameStage.Game
-
-        launch(Dispatchers.Default) {
-            delay(50)
-            make_turn(
-                "-1",
-                x,
-                y,
-                left,
-                right,
-                down,
-                up,
-                center, listOf()
-            );
-        }
-
     }
 
 
@@ -423,47 +419,47 @@ class GameEngine : EventListener {
         msg: List<String>
     ) {
 
-            if (current_stage.value == GameStage.Game) {
-                field[cur_player_pos.x, cur_player_pos.y].shadow = 1
-                field[cur_player_pos.x + 1, cur_player_pos.y].shadow = 1
-                field[cur_player_pos.x - 1, cur_player_pos.y].shadow = 1
-                field[cur_player_pos.x, cur_player_pos.y + 1].shadow = 1
-                field[cur_player_pos.x, cur_player_pos.y - 1].shadow = 1
+        if (current_stage.value == GameStage.Game) {
+            field[cur_player_pos.x, cur_player_pos.y].shadow = 1
+            field[cur_player_pos.x + 1, cur_player_pos.y].shadow = 1
+            field[cur_player_pos.x - 1, cur_player_pos.y].shadow = 1
+            field[cur_player_pos.x, cur_player_pos.y + 1].shadow = 1
+            field[cur_player_pos.x, cur_player_pos.y - 1].shadow = 1
 
-                cur_player_pos.x = x.toInt()
-                cur_player_pos.y = y.toInt()
+            cur_player_pos.x = x.toInt()
+            cur_player_pos.y = y.toInt()
 
-                field[cur_player_pos.x, cur_player_pos.y].value = IntToCell(center.toInt())
-                field[cur_player_pos.x - 1, cur_player_pos.y].value = IntToCell(left.toInt())
-                field[cur_player_pos.x + 1, cur_player_pos.y].value = IntToCell(right.toInt())
-                field[cur_player_pos.x, cur_player_pos.y - 1].value = IntToCell(up.toInt())
-                field[cur_player_pos.x, cur_player_pos.y + 1].value = IntToCell(down.toInt())
+            field[cur_player_pos.x, cur_player_pos.y].value = IntToCell(center.toInt())
+            field[cur_player_pos.x - 1, cur_player_pos.y].value = IntToCell(left.toInt())
+            field[cur_player_pos.x + 1, cur_player_pos.y].value = IntToCell(right.toInt())
+            field[cur_player_pos.x, cur_player_pos.y - 1].value = IntToCell(up.toInt())
+            field[cur_player_pos.x, cur_player_pos.y + 1].value = IntToCell(down.toInt())
 
-                field[cur_player_pos.x, cur_player_pos.y].shadow = 0
-                field[cur_player_pos.x + 1, cur_player_pos.y].shadow = 0
-                field[cur_player_pos.x - 1, cur_player_pos.y].shadow = 0
-                field[cur_player_pos.x, cur_player_pos.y + 1].shadow = 0
-                field[cur_player_pos.x, cur_player_pos.y - 1].shadow = 0
+            field[cur_player_pos.x, cur_player_pos.y].shadow = 0
+            field[cur_player_pos.x + 1, cur_player_pos.y].shadow = 0
+            field[cur_player_pos.x - 1, cur_player_pos.y].shadow = 0
+            field[cur_player_pos.x, cur_player_pos.y + 1].shadow = 0
+            field[cur_player_pos.x, cur_player_pos.y - 1].shadow = 0
 
-                has_moved = false
+            has_moved = false
 
-                for (i in 9 until msg.size step 3) {
-                    field.players_position[msg[i].toInt() - 3].p.x = msg[i + 1].toInt()
-                    field.players_position[msg[i].toInt() - 3].p.y = msg[i + 2].toInt()
-                }
-                field.ping()
+            for (i in 9 until msg.size step 3) {
+                field.players_position[msg[i].toInt() - 3].p.x = msg[i + 1].toInt()
+                field.players_position[msg[i].toInt() - 3].p.y = msg[i + 2].toInt()
+            }
+            field.ping()
 
-                cur_turn.value = turn.toInt() + 1
+            cur_turn.value = turn.toInt() + 1
 
-                cur_second.value = 0;
+            cur_second.value = 0;
 
-                if (cur_target_point != cur_player_pos) {
-                    delay(bot_delay)
-                    if (!has_moved) {
-                        move_mouse_to(cur_target_point.x, cur_target_point.y)
-                    }
+            if (cur_target_point != cur_player_pos) {
+                delay(bot_delay)
+                if (!has_moved) {
+                    move_mouse_to(cur_target_point.x, cur_target_point.y)
                 }
             }
+        }
     }
 
     fun createLobby() {
