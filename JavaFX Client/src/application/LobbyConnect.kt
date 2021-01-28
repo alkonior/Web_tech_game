@@ -22,9 +22,7 @@ class LobbyConnect : View("Mice in lab.") {
 
 
     init {
-        currentStage?.setResizable(false)
-        currentStage?.width = 640.0
-        currentStage?.height = 640.0
+
         lobyId.text = gameEngine.sessionId
         gameEngine.lastError.addListener(InvalidationListener {
             Platform.runLater { errorMes.text = gameEngine.lastError.value?.message ?: "" }

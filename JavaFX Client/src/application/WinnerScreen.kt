@@ -2,6 +2,8 @@ package application
 
 import javafx.geometry.Pos
 import javafx.scene.control.Label
+import javafx.scene.image.Image
+import javafx.scene.image.ImageView
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.VBox
 import javafx.scene.text.Font
@@ -16,6 +18,13 @@ class WinnerScreen : View("My View") {
 
     private val gameEngineModel: GameFieldModel by inject()
     private val gameEngine = gameEngineModel.engine
+
+    private val playersimgs = listOf(
+        Image("/img/first.png"),
+        Image("/img/second.png"),
+        Image("/img/third.png"),
+        Image("/img/forth.png")
+    )
 
     init {
         when (gameEngine.didPlayrWin) {
@@ -37,6 +46,19 @@ class WinnerScreen : View("My View") {
                     else -> ""
                 }
                 winnerList.add(label)
+            }
+            run {
+                val img = ImageView()
+                img.fitWidth = 80 * 1.0;
+                img.fitHeight = 50 * 1.0;
+                img.image = when (gameEngine.playerWinColor[i]) {
+                    3 -> playersimgs[0]
+                    4 -> playersimgs[1]
+                    5 -> playersimgs[2]
+                    6 -> playersimgs[3]
+                    else -> Image("/img/nothing.png")
+                }
+                winnerList.add(img)
             }
         }
     }

@@ -31,9 +31,6 @@ class ConnectServer : View("Mice in lab.") {
 
     init {
         try {
-            currentStage?.setResizable(false)
-            currentStage?.width = 640.0
-            currentStage?.height = 640.0
             gameEngine = field_.engine
             Id.text = gameEngine.serverIp.toString()
             Port.text = gameEngine.serverPort.toString()

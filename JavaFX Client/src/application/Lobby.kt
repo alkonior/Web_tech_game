@@ -18,9 +18,7 @@ class Lobby : View("Mice in lab.") {
     private val gameEngine = gameEngineModel.engine
 
     init {
-        currentStage?.setResizable(false)
-        currentStage?.width = 640.0
-        currentStage?.height = 640.0
+
         lobyId.text = gameEngine.sessionId
         playersCount.text = "${gameEngine.playersReadyLobby.value} / ${gameEngine.playersInLobby.value}"
         gameEngine.playersReadyLobby.addListener(InvalidationListener {
